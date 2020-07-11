@@ -30,7 +30,8 @@ fn area2(dims: (u32, u32)) -> u32 {
 
 // But clone is not copy :(
 // then is it managed on heap???
-#[derive(Debug, Clone)]
+// can't use Copy without Clone
+#[derive(Debug, Clone, Copy)]
 struct Rectangle {
     width: u32,
     height: u32,
@@ -43,10 +44,7 @@ fn rect3() {
     };
 
     println!("The area of rectangle is {} square pixels.", area3(&rect));
-    println!(
-        "The area of rectangle is {} square pixels.",
-        area35(rect.clone())
-    );
+    println!("The area of rectangle is {} square pixels.", area35(rect));
 
     println!("{}", rect.width);
     println!("{:#?}", rect);
