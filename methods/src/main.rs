@@ -13,11 +13,15 @@ fn main() {
         height: 50,
     };
 
-    let area = area(rectangle);
+    let area = rectangle.area();
 
     println!("The area of rectangle is {} square pixels.", area);
 }
 
-fn area(rectangle: Rectangle) -> u32 {
-    rectangle.width * rectangle.height
+impl Rectangle {
+    // can also be &self
+    // and maybe &mut self
+    fn area(self) -> u32 {
+        self.width * self.height
+    }
 }
