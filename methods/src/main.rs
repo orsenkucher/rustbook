@@ -16,6 +16,10 @@ fn main() {
     let area = rectangle.area();
 
     println!("The area of rectangle is {} square pixels.", area);
+
+    let sq = Rectangle::square(12);
+    println!("sq area: {}", sq.area());
+    println!("sq and hold: {}", sq.can_hold(&Rectangle::square(11)));
 }
 
 impl Rectangle {
@@ -23,5 +27,18 @@ impl Rectangle {
     // and maybe &mut self
     fn area(self) -> u32 {
         self.width * self.height
+    }
+
+    fn square(size: u32) -> Rectangle {
+        Rectangle {
+            width: size,
+            height: size,
+        }
+    }
+}
+
+impl Rectangle {
+    fn can_hold(&self, other: &Rectangle) -> bool {
+        self.width > other.width && self.height > other.height
     }
 }
