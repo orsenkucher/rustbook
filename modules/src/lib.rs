@@ -35,6 +35,38 @@ pub fn eat_at_restaurant() {
     hosting::add_to_waitlist();
 }
 
+trait Appendable {
+    fn append(&mut self, other: &mut Self);
+}
+
+#[test]
+fn trait_test() {
+    let mut v = vec![1, 3, 4];
+    let mut v2 = vec![2];
+    v.append(&mut v2);
+    let res = format!("v: {:#?}, v2:{:#?}", v, v2);
+    print!("{}", res);
+
+    print!("{:#?}", v);
+    ap(&mut v);
+}
+
+impl<T> Appendable for Vec<T> {
+    fn append(&mut self, other: &mut Self) {
+        self.append(other)
+    }
+}
+
+fn ap(v: &mut impl Appendable) {}
+
+fn ap2<T: Appendable>(v: &mut T) {}
+
+fn ap3<T>(v: &mut T)
+where
+    T: Appendable,
+{
+}
+
 #[cfg(test)]
 mod tests {
     #[test]
