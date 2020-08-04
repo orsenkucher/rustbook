@@ -15,6 +15,31 @@ fn largest<T: PartialOrd + Copy>(list: &[T]) -> T {
     largest
 }
 
+fn largest2<T: PartialOrd + Clone>(list: &[T]) -> T {
+    let mut largest = list[0].clone();
+
+    for item in list {
+        let item = item.clone();
+        if item > largest {
+            largest = item
+        }
+    }
+
+    largest
+}
+
+fn largest3<T: PartialOrd>(list: &[T]) -> &T {
+    let mut largest = &list[0];
+
+    for item in list {
+        if item > largest {
+            largest = item;
+        }
+    }
+
+    largest
+}
+
 fn print_largest(list: &[impl PartialOrd + Copy + Display]) {
     let mut largest = list[0];
 

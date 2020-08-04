@@ -29,7 +29,8 @@ impl<T, U> Point<T, U> {
         U: Default,
     {
         Point {
-            x: T::default(),
+            // x: T::default(),
+            x: Default::default(), // wow
             y: U::default(),
         }
     }
