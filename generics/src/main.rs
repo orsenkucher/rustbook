@@ -1,6 +1,7 @@
 use std::{cmp::PartialOrd, fmt::Display};
 
 mod point;
+mod trait_obj;
 
 fn largest<T: PartialOrd + Copy>(list: &[T]) -> T {
     let mut largest = list[0];
