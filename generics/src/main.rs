@@ -109,3 +109,5 @@ mod tweet {
 
     // fn notify<T: Summary>(item1: &T, item2: &T)
 }
+
+mod cond_point;
