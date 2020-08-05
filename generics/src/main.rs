@@ -62,6 +62,18 @@ fn main() {
 
     let result = largest(&char_list);
     println!("The largest char is {}", result);
+
+    let y = vec!['a', 'b', 'c'];
+    let ll = lifetimes::longest(&char_list, &y);
+    println!("{:?}", ll);
+
+    let string1 = String::from("abcd");
+    let string2 = "xyz";
+
+    let x = string1.as_str().chars().into_iter().collect();
+    let y = string2.chars().into_iter().collect(); // infer type later on use :like:
+    let result = lifetimes::longest(&x, &y);
+    println!("The longest string is {:?}", result);
 }
 
 mod tweet {
@@ -111,3 +123,4 @@ mod tweet {
 }
 
 mod cond_point;
+mod lifetimes;
