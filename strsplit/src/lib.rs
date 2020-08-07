@@ -1,12 +1,15 @@
 //! <- haha this is doc for crate
 #![warn(missing_debug_implementations, rust_2018_idioms, missing_docs)]
 
-pub struct StrSplit {
-    remainder: &str,
-    delimiter: &str,
+pub struct StrSplit<'a> {
+    remainder: &'a str,
+    delimiter: &'a str,
 }
 
-impl StrSplit {
+// impl<'a> StrSplit<'a> {
+// anon lifetime '_
+//  - guess what lifetime, if there is only one possible guess.
+impl StrSplit<'_> {
     pub fn new(haystack: &str, delimiter: &str) -> Self {
         Self {
             remainder: haystack,
@@ -15,10 +18,13 @@ impl StrSplit {
     }
 }
 
-impl Iterator for StrSplit {
+impl<'a> Iterator for StrSplit<'a> {
     // hmm, what is it?
     // an alias i think
-    type Item = &str;
+    type Item = &'a str;
+    // Basically what we say, is that this `Item` is valid
+    // as long as `remainder` is in valid,
+    // even if `StrSplit` was already dropped.
 
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(next_delim) = self.remainder.find(self.delimiter) {
