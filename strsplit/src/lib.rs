@@ -35,24 +35,21 @@ impl<'a> Iterator for StrSplit<'a> {
         // But here we're getting a mutable ref to self.remainder.
         // To modify the existing value.
         /*                  &mut &'a str      Option<&'a str> */
-        if let Some(ref mut remainder) = self.remainder {
-            // if let Some(&mut remainder) would mean try to match:
-            // what is inside self.remainder with &mut remainder pattern.
-            // let Some(&mut remainder) will match Option<&mut T> and remainder will be T
-            //
-            // ALSO *NEW MAGIC SYNTAX*
-            // if let Some(remainder) = &mut self.remainder {
-            //                          ^^^^
-            if let Some(next_delim) = remainder.find(self.delimiter) {
-                let until_delimiter = &remainder[..next_delim];
-                *remainder = &remainder[(next_delim + self.delimiter.len()..)];
-                Some(until_delimiter)
-            } else {
-                self.remainder.take()
-                // impl<T> Option<T> { fn take(&mut self) -> Option<T> }
-            }
+        let ref mut remainder = self.remainder?;
+        // if let Some(&mut remainder) would mean try to match:
+        // what is inside self.remainder with &mut remainder pattern.
+        // let Some(&mut remainder) will match Option<&mut T> and remainder will be T
+        //
+        // ALSO *NEW MAGIC SYNTAX*
+        // if let Some(remainder) = &mut self.remainder {
+        //                          ^^^^
+        if let Some(next_delim) = remainder.find(self.delimiter) {
+            let until_delimiter = &remainder[..next_delim];
+            *remainder = &remainder[(next_delim + self.delimiter.len()..)];
+            Some(until_delimiter)
         } else {
-            None
+            self.remainder.take()
+            // impl<T> Option<T> { fn take(&mut self) -> Option<T> }
         }
     }
 }
