@@ -2,18 +2,25 @@
 // #![warn(missing_debug_implementations, rust_2018_idioms, missing_docs)]
 
 #[derive(Debug)]
-pub struct StrSplit<'a> {
-    remainder: Option<&'a str>,
-    delimiter: &'a str,
+pub struct StrSplit<'haystack, 'delimiter> {
+    remainder: Option<&'haystack str>,
+    delimiter: &'delimiter str,
 }
+// str  -similar> [char] // it doesn't know it's length
+// &str -> &[char] // fat (not narrow) pointer, knows where slice start is
+//                 // as well as it's length.
+// String -> Vec<char> // heap alloc, can shrink and grow
+//
+// String -to> &str   (cheap -- AsRef)
+// &str   -to> String (expensive -- memcpy)
 
 // impl StrSplit<'_> {
 // anon lifetime '_
 //  - guess what lifetime, if there is only one possible guess.
 
 // Pointers we give in, live at least as long as StrSplit
-impl<'a> StrSplit<'a> {
-    pub fn new(haystack: &'a str, delimiter: &'a str) -> Self {
+impl<'haystack, 'delimiter> StrSplit<'haystack, 'delimiter> {
+    pub fn new(haystack: &'haystack str, delimiter: &'delimiter str) -> Self {
         Self {
             remainder: Some(haystack),
             delimiter,
@@ -21,10 +28,19 @@ impl<'a> StrSplit<'a> {
     }
 }
 
-impl<'a> Iterator for StrSplit<'a> {
+// impl<'haystack, 'delimiter> Iterator for StrSplit<'haystack, 'delimiter>
+//
+// We don't care about delimiter lifetime
+impl<'haystack> Iterator for StrSplit<'haystack, '_>
+//
+// We do not need this, in fact it's opposite of what we need
+// Just for example
+// where
+//     'delimiter: 'haystack, // basically 'delimiter > 'haystack
+{
     // hmm, what is it?
     // an alias i think
-    type Item = &'a str;
+    type Item = &'haystack str;
     // Basically what we say, is that this `Item` is valid
     // as long as `remainder` is in valid,
     // even if `StrSplit` was already dropped.
@@ -52,6 +68,17 @@ impl<'a> Iterator for StrSplit<'a> {
             // impl<T> Option<T> { fn take(&mut self) -> Option<T> }
         }
     }
+}
+
+pub fn until_char(s: &str, c: char) -> &str {
+    StrSplit::new(s, &format!("{}", c))
+        .next()
+        .expect("StrSplit always gives at least one result")
+}
+
+#[test]
+fn until_char_test() {
+    assert_eq!(until_char("hello world", 'o'), "hell");
 }
 
 #[test]
