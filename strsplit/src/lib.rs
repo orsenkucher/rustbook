@@ -35,7 +35,7 @@ impl<'a> Iterator for StrSplit<'a> {
         // But here we're getting a mutable ref to self.remainder.
         // To modify the existing value.
         /*                  &mut &'a str      Option<&'a str> */
-        let ref mut remainder = self.remainder?;
+        let remainder = self.remainder.as_mut()?;
         // if let Some(&mut remainder) would mean try to match:
         // what is inside self.remainder with &mut remainder pattern.
         // let Some(&mut remainder) will match Option<&mut T> and remainder will be T
