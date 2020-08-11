@@ -57,4 +57,25 @@ Pick three.";
 
         assert_eq!(vec!["safe, fast, productive."], search(query, contents));
     }
+
+    #[test]
+    fn not_enough_arguments() {
+        // assert_eq!(Config::new(&vec![]), Err("not enough arguments"))
+        assert_eq!(Config::new(&vec![]).err(), Some("not enough arguments"))
+    }
+
+    #[test]
+    fn test() -> Result<(), Box<dyn Error>> {
+        let data: Vec<_> = ["", "query", "filename"]
+            .iter()
+            .map(|s| String::from(*s))
+            .collect();
+
+        let cfg = Config::new(&data)?;
+
+        assert_eq!(cfg.query, "query");
+        assert_eq!(cfg.filename, "filename");
+
+        Ok(())
+    }
 }
