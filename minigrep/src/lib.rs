@@ -33,7 +33,10 @@ impl Config {
         let query = args[1].clone();
         let filename = args[2].clone();
 
-        let case_sensitive = env::var("CASE_INSENSITIVE").is_err();
+        let case_sensitive = match args.get(3) {
+            None => env::var("CASE_INSENSITIVE").is_err(),
+            _ => false,
+        };
 
         Ok(Config {
             query,
@@ -107,16 +110,33 @@ Trust me.";
     }
 
     #[test]
-    fn test() -> Result<(), Box<dyn Error>> {
+    fn config_case_sensitive() -> Result<(), Box<dyn Error>> {
         let data: Vec<_> = ["", "query", "filename"]
             .iter()
             .map(|s| String::from(*s))
             .collect();
 
-        let cfg = Config::new(&data)?;
+        let config = Config::new(&data)?;
 
-        assert_eq!(cfg.query, "query");
-        assert_eq!(cfg.filename, "filename");
+        assert_eq!(config.query, "query");
+        assert_eq!(config.filename, "filename");
+        assert_eq!(config.case_sensitive, true);
+
+        Ok(())
+    }
+
+    #[test]
+    fn config_case_insensitive() -> Result<(), Box<dyn Error>> {
+        let data: Vec<_> = ["", "query", "filename", "true"]
+            .iter()
+            .map(|s| String::from(*s))
+            .collect();
+
+        let config = Config::new(&data)?;
+
+        assert_eq!(config.query, "query");
+        assert_eq!(config.filename, "filename");
+        assert_eq!(config.case_sensitive, false);
 
         Ok(())
     }
