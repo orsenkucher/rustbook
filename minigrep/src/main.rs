@@ -1,4 +1,4 @@
-use std::{env, fs, process};
+use std::{env, error::Error, fs, process};
 
 // $ cargo run test sample.txt
 fn main() {
@@ -12,9 +12,20 @@ fn main() {
     println!("Serching for {}", config.query);
     println!("In file {}", config.filename);
 
-    let contents =
-        fs::read_to_string(config.filename).expect("Something went wrong reading the file");
+    if let Err(e) = run(config) {
+        println!("Application error: {}", e);
+
+        process::exit(1);
+    }
+}
+
+// here we use trait object, so it needs to be Boxed
+fn run(config: Config) -> Result<(), Box<dyn Error>> {
+    let contents = fs::read_to_string(config.filename)?;
+
     println!("With text:\n{}", contents);
+
+    Ok(())
 }
 
 struct Config {
