@@ -25,15 +25,20 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn new(args: &[String]) -> Result<Config, &'static str> {
-        if args.len() < 3 {
-            return Err("not enough arguments");
-        }
+    pub fn new(mut args: std::env::Args) -> Result<Config, &'static str> {
+        args.next();
 
-        let query = args[1].clone();
-        let filename = args[2].clone();
+        let query = match args.next() {
+            Some(arg) => arg,
+            None => return Err("Didn't get a query string"),
+        };
 
-        let case_sensitive = match args.get(3) {
+        let filename = match args.next() {
+            Some(arg) => arg,
+            None => return Err("Didn't get a file name"),
+        };
+
+        let case_sensitive = match args.next() {
             None => env::var("CASE_INSENSITIVE").is_err(),
             _ => false,
         };
@@ -106,7 +111,10 @@ Trust me.";
     #[test]
     fn not_enough_arguments() {
         // assert_eq!(Config::new(&vec![]), Err("not enough arguments"))
-        assert_eq!(Config::new(&vec![]).err(), Some("not enough arguments"))
+        assert_eq!(
+            Config::new(vec![].into_iter()).err(),
+            Some("not enough arguments")
+        )
     }
 
     #[test]
