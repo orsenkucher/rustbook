@@ -20,7 +20,7 @@ where
             None => {
                 let v = (self.calculation)();
                 self.value = Some(v);
-                self.value.as_ref().unwrap()
+                self.value.as_ref().unwrap() // TODO design it better?
             }
         }
     }
