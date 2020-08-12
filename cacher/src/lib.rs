@@ -1,8 +1,5 @@
-pub struct Cacher<T, R>
-where
-    T: Fn() -> R,
-{
-    calculation: T,
+pub struct Cacher<F: Fn() -> R, R> {
+    calculation: F,
     value: Option<R>,
 }
 
@@ -19,11 +16,11 @@ where
 
     pub fn value(&mut self) -> &R {
         match self.value {
-            Some(v) => &v,
+            Some(ref v) => v,
             None => {
                 let v = (self.calculation)();
                 self.value = Some(v);
-                &self.value.unwrap()
+                self.value.as_ref().unwrap()
             }
         }
     }
@@ -31,8 +28,11 @@ where
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+
     #[test]
     fn it_works() {
-        assert_eq!(2 + 2, 4);
+        let mut c = Cacher::new(|| vec![0; 16]);
+        assert_eq!(c.value(), &vec![0; 16]);
     }
 }
