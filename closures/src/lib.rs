@@ -64,4 +64,17 @@ mod tests {
         let v2 = c.value(2);
         assert_eq!(v2, 2);
     }
+
+    #[test]
+    fn use_of_move_keyword() {
+        let x = vec![1, 2, 3];
+
+        // move is very useful when closure is executed on different thread
+        let equal_to_x = move |z| z == x;
+
+        // println!("can't use x here: {}", x);
+
+        let y = vec![1, 2, 3];
+        assert!(equal_to_x(y));
+    }
 }
