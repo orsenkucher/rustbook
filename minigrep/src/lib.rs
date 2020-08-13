@@ -25,7 +25,7 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn new(mut args: std::env::Args) -> Result<Config, &'static str> {
+    pub fn new(mut args: impl Iterator<Item = String>) -> Result<Config, &'static str> {
         args.next();
 
         let query = match args.next() {
@@ -111,20 +111,17 @@ Trust me.";
     #[test]
     fn not_enough_arguments() {
         // assert_eq!(Config::new(&vec![]), Err("not enough arguments"))
-        assert_eq!(
-            Config::new(vec![].into_iter()).err(),
-            Some("not enough arguments")
-        )
+        assert!(Config::new(vec![].into_iter())
+            .err()
+            .unwrap()
+            .contains("Didn't get"));
     }
 
     #[test]
     fn config_case_sensitive() -> Result<(), Box<dyn Error>> {
-        let data: Vec<_> = ["", "query", "filename"]
-            .iter()
-            .map(|s| String::from(*s))
-            .collect();
+        let args = ["", "query", "filename"].iter().map(|s| String::from(*s));
 
-        let config = Config::new(&data)?;
+        let config = Config::new(args)?;
 
         assert_eq!(config.query, "query");
         assert_eq!(config.filename, "filename");
@@ -135,12 +132,11 @@ Trust me.";
 
     #[test]
     fn config_case_insensitive() -> Result<(), Box<dyn Error>> {
-        let data: Vec<_> = ["", "query", "filename", "true"]
+        let args = ["", "query", "filename", "true"]
             .iter()
-            .map(|s| String::from(*s))
-            .collect();
+            .map(|s| String::from(*s));
 
-        let config = Config::new(&data)?;
+        let config = Config::new(args)?;
 
         assert_eq!(config.query, "query");
         assert_eq!(config.filename, "filename");
