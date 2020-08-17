@@ -1,4 +1,4 @@
-// https://rust-unofficial.github.io/too-many-lists/
+// todo: https://rust-unofficial.github.io/too-many-lists/
 
 enum List<T> {
     Cons(T, Box<List<T>>),
@@ -25,13 +25,11 @@ impl<'a, T> IntoIterator for &'a Box<List<T>> {
 impl<'a, T> Iterator for ListIter<'a, T> {
     type Item = &'a T;
     fn next(&mut self) -> Option<Self::Item> {
-        let inline: &List<_> = self;
-        match inline {
-            List::Cons(v, ll) => {
-                self.0 = ll;
-                Some(v)
-            }
-            List::Nil => None,
+        if let List::Cons(v, ll) = self as &List<_> {
+            self.0 = ll;
+            Some(v)
+        } else {
+            None
         }
     }
 }
