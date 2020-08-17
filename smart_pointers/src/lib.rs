@@ -1,3 +1,5 @@
+// https://rust-unofficial.github.io/too-many-lists/
+
 enum List<T> {
     Cons(T, Box<List<T>>),
     Nil,
@@ -7,57 +9,25 @@ struct ListIter<'a, T> {
     val: &'a Box<List<T>>,
 }
 
-impl<'a, T> IntoIterator for List<T> {
-    type Item = T;
+impl<'a, T> IntoIterator for &'a Box<List<T>> {
+    type Item = &'a T;
     type IntoIter = ListIter<'a, T>;
     fn into_iter(self) -> Self::IntoIter {
-        ListIter {
-            val: Box::new(&self),
-        }
+        ListIter { val: self }
     }
 }
 
-// https://rust-unofficial.github.io/too-many-lists/
-impl<T> Iterator for ListIter<T> {
-    type Item = T;
+impl<'a, T> Iterator for ListIter<'a, T> {
+    type Item = &'a T;
     fn next(&mut self) -> Option<Self::Item> {
-        // let b = self.val;
-        // self.val.
-
-        // let val = &*self.val;
-        if let List::Cons(val, list) = &*self.val {
-            self.val = list;
-            return Some(val);
+        if let List::Cons(v, ll) = &**self.val {
+            self.val = ll;
+            Some(v)
+        } else {
+            None
         }
-
-        // let v: List<Self::Item> = self.val.into();
-        None
-        // if let List::Cons(val, list) = self.val {
-        //     self.val = *list;
-        //     Some(val)
-        // } else {
-        //     None
-        // }
     }
 }
-
-// enum List {
-//     Cons(i32, Box<List>),
-//     Nil,
-// }
-
-// use crate::List::{Cons, Nil};
-
-// impl Iterator for List {
-//     type Item = i32;
-//     fn next(&mut self) -> Option<Self::Item> {
-//         if let Cons(val, list) = self {
-//             Some(*val)
-//         } else {
-//             None
-//         }
-//     }
-// }
 
 #[cfg(test)]
 mod tests {
@@ -65,6 +35,7 @@ mod tests {
 
     #[test]
     fn it_works() {
-        let list = Cons(1, Box::new(Nil));
+        let list = Box::new(Cons(2, Box::new(Cons(1, Box::new(Nil)))));
+        assert_eq!(list.into_iter().collect::<Vec<_>>(), vec![&2, &1])
     }
 }
