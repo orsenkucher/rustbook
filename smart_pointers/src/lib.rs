@@ -5,26 +5,33 @@ enum List<T> {
     Nil,
 }
 
-struct ListIter<'a, T> {
-    val: &'a Box<List<T>>,
+struct ListIter<'a, T>(&'a Box<List<T>>);
+
+impl<'a, T> std::ops::Deref for ListIter<'a, T> {
+    type Target = &'a Box<List<T>>;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
 }
 
 impl<'a, T> IntoIterator for &'a Box<List<T>> {
     type Item = &'a T;
     type IntoIter = ListIter<'a, T>;
     fn into_iter(self) -> Self::IntoIter {
-        ListIter { val: self }
+        ListIter(self)
     }
 }
 
 impl<'a, T> Iterator for ListIter<'a, T> {
     type Item = &'a T;
     fn next(&mut self) -> Option<Self::Item> {
-        if let List::Cons(v, ll) = &**self.val {
-            self.val = ll;
-            Some(v)
-        } else {
-            None
+        let inline: &List<_> = self;
+        match inline {
+            List::Cons(v, ll) => {
+                self.0 = ll;
+                Some(v)
+            }
+            List::Nil => None,
         }
     }
 }
