@@ -68,3 +68,4 @@ fn main() {
     let v = head2.into_iter().filter(|e| **e % 2 == 0);
     assert!(v.eq(vec![-4, 2].iter()));
 }
+
