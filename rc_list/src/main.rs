@@ -53,4 +53,18 @@ fn main() {
 
     println!("{:?}", head1);
     println!("{:?}", head2);
+
+    let v = vec![1, 2, 3, 4];
+    let res: Vec<_> = v.iter().filter(|e| **e % 2 == 0).collect();
+    assert_eq!(res, vec![&2, &4]);
+
+    let v = vec![1, 2, 3, 4];
+    let res = v.into_iter().filter(|e| *e % 2 == 0).collect::<Vec<_>>();
+    assert_eq!(res, vec![2, 4]);
+
+    let v = head1.into_iter().filter(|e| **e % 2 == 0);
+    assert!(v.eq(vec![4, 2].iter()));
+
+    let v = head2.into_iter().filter(|e| **e % 2 == 0);
+    assert!(v.eq(vec![-4, 2].iter()));
 }
