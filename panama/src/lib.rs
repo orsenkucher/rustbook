@@ -19,9 +19,9 @@ impl<T> Clone for Sender<T> {
 
 impl<T> Sender<T> {
     pub fn send(&mut self, t: T) {
-        let mut queue = self.shared.queue.lock().unwrap();
-        queue.push_back(t);
-        drop(queue); // drop lock to make receiver wakeup
+        let mut inner = self.shared.inner.lock().unwrap();
+        inner.queue.push_back(t);
+        drop(inner); // drop lock to make receiver wakeup
         self.shared.available.notify_one();
     }
 }
@@ -32,22 +32,27 @@ pub struct Receiver<T> {
 
 impl<T> Receiver<T> {
     pub fn recv(&mut self) -> T {
-        let mut queue = self.shared.queue.lock().unwrap();
+        let mut inner = self.shared.inner.lock().unwrap();
         loop {
-            match queue.pop_front() {
+            match inner.queue.pop_front() {
                 Some(t) => return t,
                 None => {
                     // wait until OS gives a reason to wake, though it's not guaranteed
                     // the reason is what we wait for. So we loop here
-                    queue = self.shared.available.wait(queue).unwrap();
+                    inner = self.shared.available.wait(inner).unwrap();
                 }
             }
         }
     }
 }
 
+struct Inner<T> {
+    queue: VecDeque<T>,
+    senders: usize,
+}
+
 struct Shared<T> {
-    queue: Mutex<VecDeque<T>>,
+    inner: Mutex<Inner<T>>,
     available: Condvar,
 }
 
