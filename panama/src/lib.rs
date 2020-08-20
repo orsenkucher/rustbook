@@ -24,6 +24,7 @@ impl<T> Clone for Sender<T> {
 impl<T> Drop for Sender<T> {
     fn drop(&mut self) {
         let mut inner = self.shared.inner.lock().unwrap();
+        eprintln!("drop sender, count was: {}", inner.senders);
         inner.senders -= 1;
         let was_last = inner.senders == 0;
         drop(inner);
@@ -47,11 +48,12 @@ pub struct Receiver<T> {
 }
 
 impl<T> Receiver<T> {
-    pub fn recv(&mut self) -> T {
+    pub fn recv(&mut self) -> Option<T> {
         let mut inner = self.shared.inner.lock().unwrap();
         loop {
             match inner.queue.pop_front() {
-                Some(t) => return t,
+                Some(t) => return Some(t),
+                None if dbg!(inner.senders) == 0 => return None, // dbg!() is debug print macro
                 None => {
                     // wait until OS gives a reason to wake, though it's not guaranteed
                     // the reason is what we wait for. So we loop here
@@ -73,8 +75,12 @@ struct Shared<T> {
 }
 
 pub fn channel<T>() -> (Sender<T>, Receiver<T>) {
+    let inner = Inner {
+        queue: VecDeque::default(),
+        senders: 1,
+    };
     let shared = Shared {
-        queue: Mutex::default(),
+        inner: Mutex::new(inner),
         available: Condvar::new(),
     };
     let shared = Arc::new(shared);
@@ -97,13 +103,15 @@ mod tests {
     fn ping_pong() {
         let (mut tx, mut rx) = channel();
         tx.send(42);
-        assert_eq!(rx.recv(), 42);
+        assert_eq!(rx.recv(), Some(42));
     }
 
+    // cargo t -- --test-threads=1 --nocapture // to show prints
     #[test]
     fn closed() {
         let (tx, mut rx) = channel::<()>();
-        let _ = tx;
-        let _ = rx.recv();
+        // let _ = tx; // won't drop tx immediately haha
+        drop(tx);
+        assert_eq!(rx.recv(), None);
     }
 }
