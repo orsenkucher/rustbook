@@ -8,11 +8,27 @@ pub struct Sender<T> {
 // need to impl Clone ourselves, since Arc is clonable not necessarily when T is clonable
 impl<T> Clone for Sender<T> {
     fn clone(&self) -> Self {
+        let mut inner = self.shared.inner.lock().unwrap();
+        inner.senders += 1;
+        drop(inner);
+
         Sender {
             // specifically clone the Arc and not the thing inside the Arc:
             shared: Arc::clone(&self.shared),
             // when self.shared.clone() might clone shared Arc value as well.
             // x. is (*x). and it recurses down
+        }
+    }
+}
+
+impl<T> Drop for Sender<T> {
+    fn drop(&mut self) {
+        let mut inner = self.shared.inner.lock().unwrap();
+        inner.senders -= 1;
+        let was_last = inner.senders == 0;
+        drop(inner);
+        if was_last {
+            self.shared.available.notify_one(); // unlock our only one receiver is no more senders exist
         }
     }
 }
