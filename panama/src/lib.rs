@@ -108,10 +108,17 @@ mod tests {
 
     // cargo t -- --test-threads=1 --nocapture // to show prints
     #[test]
-    fn closed() {
+    fn closed_tx() {
         let (tx, mut rx) = channel::<()>();
         // let _ = tx; // won't drop tx immediately haha
         drop(tx);
         assert_eq!(rx.recv(), None);
+    }
+
+    #[test]
+    fn closed_rx() {
+        let (mut tx, rx) = channel();
+        drop(rx);
+        tx.send(42); // go will panic with sending on closed channel here!
     }
 }
