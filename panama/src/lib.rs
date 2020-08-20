@@ -64,6 +64,13 @@ impl<T> Receiver<T> {
     }
 }
 
+impl<T> Iterator for Receiver<T> {
+    type Item = T;
+    fn next(&mut self) -> Option<Self::Item> {
+        self.recv()
+    }
+}
+
 struct Inner<T> {
     queue: VecDeque<T>,
     senders: usize,
