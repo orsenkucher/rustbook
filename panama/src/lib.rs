@@ -45,14 +45,27 @@ impl<T> Sender<T> {
 
 pub struct Receiver<T> {
     shared: Arc<Shared<T>>,
+    buffer: VecDeque<T>,
 }
 
 impl<T> Receiver<T> {
     pub fn recv(&mut self) -> Option<T> {
+        if let Some(t) = self.buffer.pop_front() {
+            return Some(t);
+        }
+        // by now buffer should be empty
+
         let mut inner = self.shared.inner.lock().unwrap();
         loop {
             match inner.queue.pop_front() {
-                Some(t) => return Some(t),
+                Some(t) => {
+                    // Wow haha! Steal all items at once from queue
+                    // when acquired this lock anyway
+                    // if !inner.queue.is_empty() { // without this branch might be faster?
+                    std::mem::swap(&mut self.buffer, &mut inner.queue);
+
+                    return Some(t);
+                }
                 None if dbg!(inner.senders) == 0 => return None, // dbg!() is debug print macro
                 None => {
                     // wait until OS gives a reason to wake, though it's not guaranteed
@@ -98,6 +111,7 @@ pub fn channel<T>() -> (Sender<T>, Receiver<T>) {
         },
         Receiver {
             shared: shared.clone(),
+            buffer: VecDeque::default(),
         },
     )
 }
