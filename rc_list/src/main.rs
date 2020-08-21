@@ -9,30 +9,24 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 impl<T> List<T> {
-    fn wrap(x: T) -> Rc<RefCell<T>> {
+    pub fn value(x: T) -> Rc<RefCell<T>> {
         Rc::new(RefCell::new(x))
     }
 
-    pub fn new(x: T) -> Self {
+    pub fn bind(x: Rc<RefCell<T>>, tail: Rc<Self>) -> Rc<Self> {
+        Rc::new(Cons(x, tail))
+    }
+
+    pub fn new(x: T) -> Rc<Self> {
         Nil.pull(x)
     }
 
-    pub fn pull(self, x: T) -> Self {
-        Cons(Self::wrap(x), Rc::new(self))
+    pub fn branch(x: T, tail: &Rc<Self>) -> Rc<Self> {
+        List::bind(Self::value(x), Rc::clone(tail))
     }
 
-    // pub fn branch(x: T, ll: &Rc<Self>) -> Self {
-    //     Cons(Self::wrap(x), Rc::clone(ll))
-    // }
-}
-
-pub trait Branch<T> {
-    fn branch(&self, x: T) -> List<T>;
-}
-
-impl<T> Branch<T> for Rc<List<T>> {
-    fn branch(&self, x: T) -> List<T> {
-        Cons(List::wrap(x), Rc::clone(self))
+    pub fn pull(x: T, tail: Rc<Self>) -> Rc<Self> {
+        List::bind(Self::value(x), tail)
     }
 }
 
@@ -65,18 +59,22 @@ fn main() {
     // let head1 = List::branch(4, &tail);
     // let head2 = List::branch(-4, &tail);
     let tail = Rc::new(tail);
-    // let head1 = List::branch(4, &tail);
-    let head1 = tail.branch(4);
-    let head2 = tail.branch(-4);
+    let value = List::value(4);
 
-    let other = vec![4, 3, 2, 1].into_iter();
-    let hi1 = head1.into_iter().map(|e| e.borrow()).map(|e| *e);
+    // let head1 = List::branch(4, &tail);
+    let head1 = List::branch(4, &tail);
+    let head2 = List::branch(-4, &tail);
+
+    // let other = vec![4, 3, 2, 1].into_iter();
+    // let hi1 = head1.into_iter().map(|e| e.borrow()).map(|e| *e);
+    // let test =
 
     // other.eq(hi1);
     // hi1.eq(other);
-    let o_vec: Vec<_> = other.collect();
-    let h_vec: Vec<_> = hi1.collect();
-    assert_eq!(o_vec, h_vec);
+
+    // let o_vec: Vec<_> = other.collect();
+    // let h_vec: Vec<_> = hi1.collect();
+    // assert_eq!(o_vec, h_vec);
 
     // assert!(head1
     //     .into_iter()
