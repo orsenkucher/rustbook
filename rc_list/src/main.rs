@@ -20,6 +20,13 @@ impl<T> List<T> {
     pub fn value(x: T) -> Rc<RefCell<T>> {
         Rc::new(RefCell::new(x))
     }
+
+    pub fn tail(&self) -> Option<&Rc<Self>> {
+        match self {
+            Cons(_, tail) => Some(tail),
+            Nil => None,
+        }
+    }
 }
 
 impl<'a, T> IntoIterator for &'a List<T> {
