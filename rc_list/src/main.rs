@@ -5,7 +5,7 @@ pub enum List<T> {
 }
 
 use crate::List::{Cons, Nil};
-use std::ops::Deref;
+use std::ops::{Add, Deref};
 use std::{cell::RefCell, rc::Rc};
 
 impl<T> List<T> {
@@ -44,6 +44,16 @@ impl<T> RcList<T> {
 
     pub fn branch(&self, x: Rc<RefCell<T>>) -> Self {
         Self::clone(&self).bind(x)
+    }
+}
+
+impl<T> Add for RcList<T> {
+    type Output = Self;
+    fn add(self, rhs: Self) -> Self::Output {
+        self.into_iter()
+            .collect::<Vec<_>>()
+            .into_iter()
+            .rfold(rhs, |rhs, it| rhs.bind(Rc::clone(it)))
     }
 }
 
@@ -109,4 +119,11 @@ fn main() {
         .map(|e| *e.borrow())
         .filter(|e| *e % 2 == 0)
         .eq(vec![-50, 20, 2]));
+
+    let list = list1 + list2;
+    println!("{:?}", list);
+    assert!(list
+        .into_iter()
+        .map(|e| *e.borrow())
+        .eq(vec![5, 20, 3, 2, 1, -50, 20, 3, 2, 1]));
 }
