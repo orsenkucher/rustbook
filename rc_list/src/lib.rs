@@ -41,4 +41,15 @@ mod tests {
         let mut scholars: Vec<Scholar> = Vec::new();
         scholars.iter_mut().for_each(|s| s.age = 18);
     }
+
+    #[test]
+    fn basic_filter() {
+        let v = vec![1, 2, 3, 4];
+        let res: Vec<_> = v.iter().filter(|e| **e % 2 == 0).collect();
+        assert_eq!(res, vec![&2, &4]);
+
+        let v = vec![1, 2, 3, 4];
+        let res = v.into_iter().filter(|e| *e % 2 == 0).collect::<Vec<_>>();
+        assert_eq!(res, vec![2, 4]);
+    }
 }
