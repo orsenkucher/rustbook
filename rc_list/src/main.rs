@@ -1,5 +1,3 @@
-// #![feature(associated_type_defaults)]
-
 #[derive(Debug)]
 pub enum List<T> {
     Cons(Rc<RefCell<T>>, Rc<List<T>>),
@@ -7,8 +5,8 @@ pub enum List<T> {
 }
 
 use crate::List::{Cons, Nil};
-use std::cell::RefCell;
-use std::{ops::Deref, rc::Rc};
+use std::ops::Deref;
+use std::{cell::RefCell, rc::Rc};
 
 impl<T> List<T> {
     pub fn new(x: T) -> Self {
