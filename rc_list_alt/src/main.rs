@@ -1,6 +1,6 @@
 #[derive(Debug)]
 pub enum List<T> {
-    Cons(Rc<RefCell<T>>, Rc<List<T>>),
+    Cons(Rc<RefCell<T>>, RefCell<Rc<List<T>>>),
     Nil,
 }
 
@@ -13,11 +13,11 @@ impl<T> List<T> {
     }
 
     pub fn prepend(self, x: T) -> Self {
-        Cons(Self::value(x), Rc::new(self))
+        self.cons(Self::value(x))
     }
 
     pub fn cons(self, x: Rc<RefCell<T>>) -> Self {
-        Cons(x, Rc::new(self))
+        Cons(x, RefCell::new(Rc::new(self)))
     }
 
     pub fn value(x: T) -> Rc<RefCell<T>> {
@@ -52,7 +52,7 @@ impl<T> Iterator for IntoIter<T> {
     fn next(&mut self) -> Option<Self::Item> {
         if let Cons(h, t) = &*self.0 {
             let h = Rc::clone(h);
-            let t = Rc::clone(t);
+            let t = Rc::clone(&t.into_inner());
             self.0 = t;
             Some(h)
         } else {
@@ -67,7 +67,7 @@ impl<T> Iterator for Iter<'_, T> {
     type Item = Rc<RefCell<T>>;
     fn next(&mut self) -> Option<Self::Item> {
         if let Cons(h, t) = self.0 {
-            self.0 = t;
+            self.0 = t.into_inner();
             Some(Rc::clone(h))
         } else {
             None
@@ -79,9 +79,9 @@ fn main() {
     let value = List::value(4);
     let tail = List::new(1).prepend(2).prepend(3).cons(Rc::clone(&value));
     let tail = Rc::new(tail);
-    let list1 = Cons(List::value(5), Rc::clone(&tail));
+    let list1 = Cons(List::value(5), RefCell::new(Rc::clone(&tail)));
     let value2 = List::value(-5);
-    let list2 = Cons(Rc::clone(&value2), Rc::clone(&tail));
+    let list2 = Cons(Rc::clone(&value2), RefCell::new(Rc::clone(&tail)));
 
     *value.borrow_mut() *= 5;
     *value2.borrow_mut() *= 10;
