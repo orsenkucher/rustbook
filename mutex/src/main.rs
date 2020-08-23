@@ -21,10 +21,9 @@ fn with_threads() {
     let counter = Arc::new(Mutex::new(0));
     let mut handles = vec![];
 
-    (0..10).for_each(|_| {
-        let counter = Arc::clone(&counter);
-        handles.push(thread::spawn(move || *counter.lock().unwrap() += 1));
-    });
+    (0..10)
+        .map(|_| Arc::clone(&counter))
+        .for_each(|c| handles.push(thread::spawn(move || *c.lock().unwrap() += 1)));
     // for _ in 0..10 {
     //     let counter = Arc::clone(&counter);
     //     let handle = thread::spawn(move || *counter.lock().unwrap() += 1);
