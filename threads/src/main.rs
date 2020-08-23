@@ -58,4 +58,6 @@ fn streaming() {
     }
 
     // tx1 and tx were closed by this point
+    // if any tx remained in main thread, hence it's drop is postponed,
+    // rx loop will get stuck forever
 }
