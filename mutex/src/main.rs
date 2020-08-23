@@ -10,4 +10,31 @@ fn main() {
     }
 
     println!("m = {:?}", m);
+
+    with_threads();
+}
+
+use std::sync::Arc;
+use std::thread;
+
+fn with_threads() {
+    let counter = Arc::new(Mutex::new(0));
+    let mut handles = vec![];
+
+    (0..10).for_each(|_| {
+        let counter = Arc::clone(&counter);
+        handles.push(thread::spawn(move || *counter.lock().unwrap() += 1));
+    });
+    // for _ in 0..10 {
+    //     let counter = Arc::clone(&counter);
+    //     let handle = thread::spawn(move || *counter.lock().unwrap() += 1);
+    //     handles.push(handle);
+    // }
+
+    handles.into_iter().for_each(|h| h.join().unwrap());
+    // for handle in handles {
+    //     handle.join().unwrap();
+    // }
+
+    println!("Result: {}", *counter.lock().unwrap());
 }
