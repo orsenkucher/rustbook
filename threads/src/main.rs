@@ -21,6 +21,7 @@ fn main() {
     handle.join().unwrap();
 
     oneshot();
+    streaming();
 }
 
 use std::sync::mpsc;
@@ -30,4 +31,31 @@ fn oneshot() {
     let (tx, rx) = mpsc::channel();
     thread::spawn(move || tx.send(String::from("yo")).unwrap());
     println!("Got: {}", rx.recv().unwrap());
+}
+
+fn streaming() {
+    let (tx, rx) = mpsc::channel();
+
+    let tx1 = mpsc::Sender::clone(&tx);
+    thread::spawn(move || {
+        let vals = vec!["hi", "from", "the", "thread"]
+            .into_iter()
+            .map(String::from);
+
+        for val in vals {
+            tx1.send(val).unwrap();
+            thread::sleep(Duration::from_millis(500));
+        }
+
+        // tx1 is closed when dropped
+    });
+
+    thread::spawn(move || tx.send(String::from("end?")).unwrap());
+    // tx closed on when second thread finishes
+
+    for received in rx {
+        println!("Got: {}", received);
+    }
+
+    // tx1 and tx were closed by this point
 }
