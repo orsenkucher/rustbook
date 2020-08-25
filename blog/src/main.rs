@@ -8,7 +8,13 @@ fn main() {
 
     post.request_review();
     assert_eq!("", post.content());
+    post.add_text("Some more text");
 
+    post.reject();
+    post.request_review();
+
+    post.approve();
+    assert_eq!("", post.content());
     post.approve();
     assert_eq!("I ate a salad for lunch today", post.content());
 }
