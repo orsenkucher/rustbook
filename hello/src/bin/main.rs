@@ -2,12 +2,15 @@ use std::io::prelude::*;
 use std::net::{TcpListener, TcpStream};
 use std::{fs, thread, time::Duration};
 
+use hello::{PoolSize, ThreadPool};
+
 fn main() {
     let listener = TcpListener::bind("127.0.0.1:7878").unwrap();
+    let pool = ThreadPool::new(PoolSize::new(4));
 
     for stream in listener.incoming() {
         let stream = stream.unwrap();
-        thread::spawn(|| handle_connection(stream));
+        pool.execute(|| handle_connection(stream));
     }
 }
 
