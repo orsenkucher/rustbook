@@ -13,6 +13,12 @@ default = ["console_error_panic_hook"]
 [dependencies]
 wasm-bindgen = "0.2.63"
 
+plotters = "0.3.0"
+plotters-canvas = "0.3.0"
+
+# From plotters example
+web-sys = { version = "0.3.39", features = ["HtmlCanvasElement"] }
+
 # The `console_error_panic_hook` crate provides better debugging of panics by
 # logging them with `console.error`. This is great for development, but requires
 # all the `std::fmt` and `std::panicking` infrastructure, so isn't great for
@@ -32,3 +38,6 @@ wasm-bindgen-test = "0.3.13"
 [profile.release]
 # Tell `rustc` to optimize for small code size.
 opt-level = "s"
+
+# From plotters example
+lto = true

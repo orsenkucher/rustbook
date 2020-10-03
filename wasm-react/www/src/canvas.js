@@ -1,34 +1,26 @@
 import React, { Component } from "react";
-
-// const wasm = import("./fractal.wasm");
-// import wa_life from "./wa_life";
-
-// import * as wasm from "hello-wasm-pack";
-// const wasm = import('hello-wasm-pack/hello-wasm-pack');
-
-import * as wasm from "wasm-react";
-
-// wasm.greet();
-
+// import * as wasm from "wasm-react";
+// import { Chart } from "../../pkg/wasm_react";
+import { Chart } from "wasm-react";
+// class Chart { }
 
 class Canvas extends Component {
-
   componentDidMount() {
-    // wasm.then(wasm => {
-    //   hahaha.greet();
-    //   // const greet = hahaha.greet;
-    //   // greet();
-    // });
-    // hahaha.greet("Kke");
-    console.log("hahaha");
-    wasm.greet("Bogdan");
-
-    // wa_life.greet("Bogdan");
+    // wasm.greet("Bogdan");
+    // console.log(Chart.mandelbrot(this));
+    console.log(Chart);
+    console.log(Chart.mandelbrot);
+    // console.log(Chart.testfn);
+    // let chart = Chart.mandelbrot(this);
+    // console.log(chart);
   }
 
   render() {
     return (
-      <canvas ref="canvas" width={this.props.width} height={this.props.height} />
+      <canvas ref="canvas" width={this.props.width} height={this.props.height} onClick={() => {
+        Chart.mandelbrot(this);
+        // Chart.testfn(this);
+      }} />
     )
   }
 }

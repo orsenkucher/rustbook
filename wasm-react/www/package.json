@@ -15,11 +15,11 @@
     "@babel/preset-env": "^7.8.7",
     "@babel/preset-react": "^7.8.3",
     "babel-loader": "^8.0.6",
+    "hello-wasm-pack": "^0.1.0",
     "react-hot-loader": "^4.12.19",
     "webpack": "^4.42.0",
     "webpack-cli": "^3.3.11",
-    "webpack-dev-server": "^3.11.0",
-    "hello-wasm-pack": "^0.1.0"
+    "webpack-dev-server": "^3.11.0"
   },
   "dependencies": {
     "react": "^16.13.0",
