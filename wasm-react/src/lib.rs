@@ -32,11 +32,11 @@ impl Chart {
     /// Draw Mandelbrot set on the provided canvas element.
     /// Return `Chart` struct suitable for coordinate conversion.
     pub fn mandelbrot(canvas: HtmlCanvasElement) -> Result<Chart, JsValue> {
-        unsafe { alert("HELLO") }
+        // unsafe { alert("HELLO") }
         // unsafe { alert(canvas) }
         mandelbrot::mytest10();
         let map_coord = mandelbrot::draw(canvas).map_err(|err| err.to_string())?;
-        unsafe { alert("HELLO2") }
+        // unsafe { alert("HELLO2") }
         Ok(Chart {
             convert: Box::new(map_coord),
         })

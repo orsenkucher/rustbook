@@ -6,9 +6,9 @@ use web_sys::HtmlCanvasElement;
 
 /// Draw Mandelbrot set
 pub fn draw(element: HtmlCanvasElement) -> DrawResult<impl Fn((i32, i32)) -> Option<(f64, f64)>> {
-    unsafe { alert("HELLO3") }
+    // unsafe { alert("HELLO3") }
     let backend = CanvasBackend::with_canvas_object(element).unwrap();
-    unsafe { alert("HELLO4") }
+    // unsafe { alert("HELLO4") }
 
     let root = backend.into_drawing_area();
     root.fill(&WHITE)?;
@@ -44,7 +44,7 @@ pub fn draw(element: HtmlCanvasElement) -> DrawResult<impl Fn((i32, i32)) -> Opt
 }
 
 pub fn mytest10() {
-    unsafe { alert("HELLO10") }
+    unsafe { alert("Start") }
 }
 
 fn mandelbrot_set(
