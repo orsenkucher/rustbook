@@ -23,7 +23,7 @@ class MyApp extends StatelessWidget {
 class MyHomePage extends StatelessWidget {
   @override
   Widget build(BuildContext buildContext) {
-    var rustString = context["wasm_demo"].callMethod('get_string').toString();
+    var rustString = context["hello_world"].callMethod('say_hello').toString();
 
     return Scaffold(
       appBar: AppBar(

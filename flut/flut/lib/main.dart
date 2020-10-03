@@ -28,11 +28,16 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
   WasmLoader _wasm;
+  WasmLoader _wasmAdder;
 
   @override
   void initState() {
     _wasm = WasmLoader.fromAssets('assets/add.wasm');
+    _wasmAdder = WasmLoader.fromAssets('assets/adder/pkg/adder_bg.wasm');
     _wasm.init().then((ready) {
+      if (mounted) setState(() {});
+    });
+    _wasmAdder.init().then((ready) {
       if (mounted) setState(() {});
     });
     super.initState();
@@ -42,6 +47,7 @@ class _MyHomePageState extends State<MyHomePage> {
     if (_wasm != null) {
       if (mounted)
         setState(() {
+          print(_wasmAdder.function('greet') as int);
           _counter = _wasm.functionParam('add_one', _counter) as int;
         });
     }

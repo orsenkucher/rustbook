@@ -41,10 +41,13 @@ flutter:
   # the material Icons class.
   uses-material-design: true
   # To add assets to your application, add an assets section, like this:
-  assets:
-    - web/wasm_demo/pkg/wasm_demo_bg.wasm
-    - web/wasm_demo/pkg/wasm_demo.js
-    - web/wasm_demo/pkg/wasm_demo_bg.js
+  # assets:
+  #   - web/hello-world/my_test.js
+  #   - web/hello-world/pkg/hello_world_bg.wasm
+  # assets:
+  #   - web/wasm_demo/pkg/wasm_demo_bg.wasm
+  #   - web/wasm_demo/pkg/wasm_demo.js
+  #   - web/wasm_demo/pkg/wasm_demo_bg.js
   #  - images/a_dot_ham.jpeg
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.
@@ -69,3 +72,6 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
+# assets:
+#   - web/hello-world/my_test.js
+#   - web/hello-world/pkg/hello_world_bg.wasm

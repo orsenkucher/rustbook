@@ -38651,7 +38651,7 @@ r[3]=r[3]+s[3]}}
 F.ud.prototype={
 M:function(a,b){return new S.nk(new F.ue(null),"Rust/WASM/Flutter interop demo",X.UB(null,C.lq),null)}}
 F.ue.prototype={
-M:function(a,b){var s=null,r=J.c_($.qV().h(0,"wasm_demo").GF("get_string")),q=L.Rz("Rust/WASM/Flutter interop demo",s)
+M:function(a,b){var s=null,r=J.c_($.qV().h(0,"hello_world").GF("say_hello")),q=L.Rz("Rust/WASM/Flutter interop demo",s)
 return new M.oc(new E.lY(q,new P.ab(1/0,56),s),T.Cp(L.Rz(r,s),s,s),s)}};(function aliases(){var s=H.zM.prototype
 s.zZ=s.a7
 s.A3=s.bq
