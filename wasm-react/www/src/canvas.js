@@ -18,7 +18,10 @@ class Canvas extends Component {
   render() {
     return (
       <canvas ref="canvas" width={this.props.width} height={this.props.height} onClick={() => {
-        Chart.mandelbrot(this);
+        // let my_ref = this.myRef.current;
+        let my_ref = this.refs["canvas"];
+        console.log(my_ref);
+        Chart.mandelbrot(my_ref);
         // Chart.testfn(this);
       }} />
     )
