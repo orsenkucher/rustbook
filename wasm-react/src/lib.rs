@@ -38,16 +38,16 @@ impl Chart {
         // unsafe { alert("HELLO") }
         // unsafe { alert(canvas) }
         // let file_reader = web_sys::FileReader::new().unwrap();
-        let file = fs::read_to_string("myfile.txt");
-        match file {
-            Ok(buf) => {
-                unsafe { alert("buf") };
-            }
-            Err(e) => {
-                // op not supported on this platform
-                unsafe { alert(&e.to_string()) };
-            }
-        }
+        // let file = fs::read_to_string("myfile.txt");
+        // match file {
+        //     Ok(buf) => {
+        //         unsafe { alert("buf") };
+        //     }
+        //     Err(e) => {
+        //         // op not supported on this platform
+        //         unsafe { alert(&e.to_string()) };
+        //     }
+        // }
         // let file_reader = FileReader::new().unwrap();
         // file_reader.read_as_binary_string("myfile.txt").unwrap();
         // file_reader.read(&psd).unwrap();
@@ -61,6 +61,8 @@ impl Chart {
         //         unsafe { alert("error") };
         //     }
         // }
+        write_file(String::from("Hello from rust"));
+
         mandelbrot::mytest10();
         let map_coord = mandelbrot::draw(canvas).map_err(|err| err.to_string())?;
         // unsafe { alert("HELLO2") }
@@ -78,6 +80,13 @@ impl Chart {
     pub fn coord(&self, x: i32, y: i32) -> Option<Point> {
         (self.convert)((x, y)).map(|(x, y)| Point { x, y })
     }
+}
+
+#[wasm_bindgen(module = "/www/src/foo.js")]
+extern "C" {
+    // #[wasm_bindgen(catch)]
+    #[wasm_bindgen]
+    fn write_file(contents: String);
 }
 
 #[wasm_bindgen]
