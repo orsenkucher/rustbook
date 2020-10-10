@@ -1,6 +1,6 @@
 use std::{error::Error, fs};
 
-use toml_edit::{value, Document};
+use toml_edit::{value, Document, Value};
 
 fn main() -> Result<(), Box<dyn Error>> {
     println!("Hello, world!");
@@ -23,22 +23,37 @@ fn main() -> Result<(), Box<dyn Error>> {
     // toml_edit::Decor::
 
     // doc["hello"] = value("toml2");
+
     let val_raw = doc["hello"].as_value_mut().unwrap();
-    // value
+    // // value
 
     let val_decor = val_raw.decor();
+    println!("DECOR: {:?}", val_decor);
+    // let mut v = value("toml2!");
+    // let v = v.as_value_mut().unwrap();
+    let t: Value = "toml2\"!".into();
     *val_raw = toml_edit::decorated(
-        toml_edit::Value::from("toml2!"),
+        // toml_edit::Value::from("toml2!"),
+        // value("toml2!").as_value_mut().unwrap().to_owned(),
+        t,
         val_decor.prefix(),
         val_decor.suffix(),
     );
-    doc["hello"].as_inline_table_mut().map(|t| t.fmt());
+    // doc["hello"].as_inline_table_mut().map(|t| t.fmt());
+
+    // let val = doc["hello"].as_value_mut().unwrap().as_str().unwrap();
+    // let val = doc["hello"]
+    //     .as_value_mut()
+    //     .and_then(Value::as_inline_table_mut)
+    //     .unwrap();
+    // let val = doc .as_value_mut().and_then(Value::as_inline_table_mut)
+
     // val_raw.as_inline_table_mut().map(|e| e.fmt());
     // val.as_str().unwrap() = "Heh";
     // autoformat inline table a.b.c: { d = "hello" }
     doc["a"]["b"]["c"].as_inline_table_mut().map(|t| t.fmt());
     let expected = r#"
-"hello" = 'toml2!' # comment
+"hello" = 'toml2"!' # comment
 ['a'.b] # my
 c = { d = "hello" }
 "#;
