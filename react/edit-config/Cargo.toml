@@ -1,0 +1,8 @@
+[package]
+name = "edit-config"
+version = "0.1.0"
+authors = ["Arseniy Kucher <orsen.kucher@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+toml_edit = "0.2.0"
