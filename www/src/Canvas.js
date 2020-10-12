@@ -1,10 +1,9 @@
 import React, { Component } from "react";
-import * as wasm from "spectrum";
-
+import { greet } from "spectrum";
 
 class Canvas extends Component {
   componentDidMount() {
-    // wasm.greet("Bogdan");
+    greet("Orsen");
   }
 
   render() {
