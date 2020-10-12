@@ -1,15 +1,15 @@
 import React, { Component } from "react";
-import { greet } from "spectrum";
+import * as spec from "spectrum";
 
 class Canvas extends Component {
   componentDidMount() {
-    greet("Orsen");
+    spec.greet("Orsen");
   }
 
   render() {
     return (
       <div onDrop={e => {
-        wasm.ondrop(e);
+        spec.ondrop(e);
       }} onDragOver={e => {
         e.preventDefault()
       }}>
