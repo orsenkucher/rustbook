@@ -9,12 +9,12 @@ const canvas = React.createRef();
 const App = ({ title }) =>
   <div>{title}
     <div>
-      <FileList onClick={() => {
-        console.log("click")
+      <FileList onClick={(name, text) => {
+        console.log(name, text)
         Chart.mandelbrot(canvas.current);
       }} />
     </div>
-    <Canvas ref={canvas} height={1000} width={1000} />
+    <Canvas ref={canvas} height={800} width={800} />
   </div>;
 
 export default App

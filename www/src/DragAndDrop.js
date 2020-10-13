@@ -17,22 +17,7 @@ class DragAndDrop extends Component {
     e.preventDefault()
     e.stopPropagation()
     this.dragCounter++
-    const items = e.dataTransfer.items
-    if (items && items.length > 0) {
-      // items.map(item => item.)
-      console.log(items)
-      const item = items[1]
-      console.log(item.type)
-      console.log(item.kind) // 'file'
-      console.log(item)
-      if (item.kind == 'file') {
-        const str = item.getAsString(s => { console.log(s) })
-        console.log(str)
-        console.log("HEH")
-        const file = item.getAsFile()
-        console.log(file)
-        console.log(file.name)
-      }
+    if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
       this.setState({ dragging: true })
     }
   }
