@@ -39,9 +39,16 @@ pub fn ondrop(event: web_sys::DragEvent) {
         psd.copy_to(&mut psd_file);
 
         let cont = String::from_utf8_lossy(&psd_file[..]);
-        alert(&cont)
+        alert(&cont);
+        write_file("my_file.txt", &cont);
     }) as Box<dyn FnMut(_)>);
 
     file_reader.set_onload(Some(onload.as_ref().unchecked_ref()));
     onload.forget();
+}
+
+#[wasm_bindgen(module = "/www/src/saver.js")]
+extern "C" {
+    #[wasm_bindgen]
+    fn write_file(name: &str, contents: &str);
 }
