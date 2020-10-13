@@ -1,6 +1,8 @@
+mod mandelbrot;
 mod utils;
 
 use wasm_bindgen::{prelude::*, JsCast};
+use web_sys::HtmlCanvasElement;
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
 // allocator.
@@ -51,4 +53,39 @@ pub fn ondrop(event: web_sys::DragEvent) {
 extern "C" {
     #[wasm_bindgen]
     fn write_file(name: &str, contents: &str);
+}
+
+/// Type alias for the result of a drawing function.
+pub type DrawResult<T> = Result<T, Box<dyn std::error::Error>>;
+
+/// Type used on the JS side to convert screen coordinates to chart
+/// coordinates.
+#[wasm_bindgen]
+pub struct Chart {
+    convert: Box<dyn Fn((i32, i32)) -> Option<(f64, f64)>>,
+}
+
+/// Result of screen to chart coordinates conversion.
+#[wasm_bindgen]
+pub struct Point {
+    pub x: f64,
+    pub y: f64,
+}
+
+#[wasm_bindgen]
+impl Chart {
+    /// Draw Mandelbrot set on the provided canvas element.
+    /// Return `Chart` struct suitable for coordinate conversion.
+    pub fn mandelbrot(canvas: HtmlCanvasElement) -> Result<Chart, JsValue> {
+        let map_coord = mandelbrot::draw(canvas).map_err(|err| err.to_string())?;
+        Ok(Chart {
+            convert: Box::new(map_coord),
+        })
+    }
+
+    /// This function can be used to convert screen coordinates to
+    /// chart coordinates.
+    pub fn coord(&self, x: i32, y: i32) -> Option<Point> {
+        (self.convert)((x, y)).map(|(x, y)| Point { x, y })
+    }
 }

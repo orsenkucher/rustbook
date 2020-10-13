@@ -3,15 +3,7 @@ import DragAndDrop from './DragAndDrop'
 
 class FileList extends Component {
 
-  state = {
-    files: [
-      'nice.pdf',
-      'verycool.jpg',
-      'amazing.png',
-      'goodstuff.mp3',
-      'thankyou.doc'
-    ]
-  }
+  state = { files: [] }
 
   handleDrop = (files) => {
     let fileList = this.state.files
@@ -27,7 +19,9 @@ class FileList extends Component {
       <DragAndDrop handleDrop={this.handleDrop}>
         <div style={{ height: 300, width: 250 }}>
           {this.state.files.map((file, i) =>
-            <div key={i}>{file}</div>
+            <li key={i}>
+              <button onClick={this.props.onClick}>{file}</button>
+            </li>
           )}
         </div>
       </DragAndDrop>
