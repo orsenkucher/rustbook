@@ -3,13 +3,13 @@ import * as spec from "spectrum";
 
 class Canvas extends Component {
   componentDidMount() {
-    spec.greet("Orsen");
+    spec.greet("Orsen")
   }
 
   render() {
     return (
       <div onDrop={e => {
-        spec.ondrop(e);
+        spec.ondrop(e)
       }} onDragOver={e => {
         e.preventDefault()
       }}>
@@ -19,4 +19,4 @@ class Canvas extends Component {
   }
 }
 
-export default Canvas;
+export default Canvas

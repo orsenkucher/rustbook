@@ -20,8 +20,8 @@ pub fn greet(name: &str) {
 
 #[wasm_bindgen]
 pub fn ondrop(event: web_sys::DragEvent) {
-    event.prevent_default();
-    event.stop_propagation();
+    event.prevent_default(); // stop browser default behavior
+    event.stop_propagation(); // stop propagation to parents
 
     let dt = event.data_transfer().unwrap();
     let files = dt.files().unwrap();
