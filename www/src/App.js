@@ -7,14 +7,18 @@ import { Chart } from "spectrum";
 const canvas = React.createRef();
 
 const App = ({ title }) =>
-  <div>{title}
-    <div>
-      <FileList onClick={(name, text) => {
-        console.log(name, text)
-        Chart.mandelbrot(canvas.current);
-      }} />
+  <div className="app">{title}
+    <div className="app-row">
+      <div className="app-config">
+        <FileList onClick={(name, text) => {
+          console.log(name, text)
+          Chart.mandelbrot(canvas.current)
+        }} />
+      </div>
+      <div>
+        <Canvas ref={canvas} height={600} width={600} />
+      </div>
     </div>
-    <Canvas ref={canvas} height={800} width={800} />
   </div>;
 
 export default App

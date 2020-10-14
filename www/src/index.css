@@ -1,4 +1,27 @@
 body {
-  font: 14px "Century Gothic", Futura, sans-serif;
-  margin: 20px;
+  font: 16px "Century Gothic", Futura, sans-serif;
+  /* margin: 20px; */
+}
+
+ol, ul {
+  padding-left: 16px;
+}
+
+.app-row {
+  display: flex;
+  flex-direction: row;
+}
+
+.app-config {
+  margin-top: 8px;
+}
+
+.app-config-inner{
+  padding-top: 4px;
+  padding-left: 4px;
+}
+
+.app-canvas {
+  margin-left: 8px;
+  margin-top: -12px;
 }

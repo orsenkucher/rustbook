@@ -29,14 +29,17 @@ class FileList extends Component {
   render() {
     return (
       <DragAndDrop handleDrop={this.handleDrop}>
-        <div style={{ height: 300, width: 250 }}>
-          {Object.keys(this.state.files).map((name, i) =>
-            < li key={i} >
-              <button onClick={() =>
-                this.props.onClick(name, this.state.files[name])
-              }>{name}</button>
-            </li>
-          )}
+        <div className="app-config-inner" style={{ height: 480, width: 280, border: 'dashed grey 2px', }}>
+          <div>{'Config browser'}</div>
+          <ol>
+            {Object.keys(this.state.files).map((name, i) =>
+              <li key={i}>
+                <button onClick={() =>
+                  this.props.onClick(name, this.state.files[name])
+                }>{name}</button>
+              </li>
+            )}
+          </ol>
         </div>
       </DragAndDrop >
     )
