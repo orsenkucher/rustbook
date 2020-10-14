@@ -9,11 +9,19 @@ class FileList extends Component {
     const fileMap = this.state.files
     for (var i = 0; i < files.length; i++) {
       const file = files[i]
-      if (!file.name) continue
-      const ext = file.name.split('.').pop()
+      const name = file.name
+      if (!name) continue
+      const ext = name.split('.').pop()
       if (ext != 'toml') continue
       const text = await file.text()
-      fileMap[file.name] = text
+      if (name in fileMap && fileMap[name] != text) {
+        if (!confirm(`Replace ${name} file?`)) {
+          console.log(`Skipped ${name}`)
+          continue
+        }
+      }
+      console.log(`Added ${name}`)
+      fileMap[name] = text
     }
     this.setState({ files: fileMap })
   }
