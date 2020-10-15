@@ -7,7 +7,7 @@ import { Chart } from "spectrum";
 const canvas = React.createRef();
 
 const App = ({ title }) =>
-  <div className="app">{title}
+  <div className="app"><b>{title}</b>
     <div className="app-row">
       <div className="app-config">
         <FileList onClick={(name, text) => {
@@ -16,9 +16,13 @@ const App = ({ title }) =>
         }} />
       </div>
       <div>
-        <Canvas ref={canvas} height={600} width={600} />
+        <Canvas ref={canvas} height={800} width={800} />
+      </div>
+      <div className="app-fields">
+        <div>Fields editor</div>
       </div>
     </div>
-  </div>;
+    <div className="app-logs">Logs</div>
+  </div >;
 
 export default App

@@ -29,8 +29,8 @@ class FileList extends Component {
   render() {
     return (
       <DragAndDrop handleDrop={this.handleDrop}>
-        <div className="app-config-inner" style={{ height: 480, width: 280, border: 'dashed grey 2px', }}>
-          <div>{'Config browser'}</div>
+        <div className="app-config-inner">
+          <div>Config browser</div>
           <ol>
             {Object.keys(this.state.files).map((name, i) =>
               <li key={i}>
