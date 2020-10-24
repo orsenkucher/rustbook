@@ -36,4 +36,9 @@ wasm-bindgen-test = "0.3.13"
 opt-level = "s"
 
 [package.metadata.wasm-pack.profile.release]
-wasm-opt = ["-Os", "--enable-mutable-globals"]
+# Optimize for size: -Os
+# Optimize aggressively for size: -Oz
+# Optimize for speed: -O
+# Optimize aggressively for speed: -O3
+# Trun optimizations off: = false
+wasm-opt = ["-O3", "--enable-mutable-globals"]
