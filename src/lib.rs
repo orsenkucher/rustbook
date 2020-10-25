@@ -1,6 +1,7 @@
 mod mandelbrot;
 mod utils;
 
+use js_sys::Array;
 use wasm_bindgen::{prelude::*, JsCast};
 use web_sys::HtmlCanvasElement;
 
@@ -87,5 +88,23 @@ impl Chart {
     /// chart coordinates.
     pub fn coord(&self, x: i32, y: i32) -> Option<Point> {
         (self.convert)((x, y)).map(|(x, y)| Point { x, y })
+    }
+}
+
+#[wasm_bindgen]
+pub struct State {
+    logs: Vec<String>,
+}
+
+#[wasm_bindgen]
+impl State {
+    pub fn new() -> State {
+        Self {
+            logs: (1..=5).map(|i| format!("{}", i)).collect(),
+        }
+    }
+
+    pub fn logs(&self) -> Array {
+        self.logs.clone().into_iter().map(JsValue::from).collect()
     }
 }

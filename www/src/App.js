@@ -2,10 +2,11 @@ import React from 'react';
 import Canvas from './Canvas';
 import FileList from './FileList';
 import Logs from './Logs';
-import { Chart } from "spectrum";
+import { Chart, State } from "spectrum";
 // import * as spec from "spectrum";
 
 const canvas = React.createRef();
+const state = State.new();
 
 const App = ({ title }) =>
   <div className="app"><b>{title}</b>
@@ -24,7 +25,7 @@ const App = ({ title }) =>
       </div>
     </div>
     <div className="app-logs">
-      <Logs logs={[1, 2, 3, 4, 5, 6, 7]} />
+      <Logs logs={state.logs()} />
     </div>
   </div >;
 
