@@ -12,7 +12,7 @@ const App = ({ title }) =>
   <div className="app"><b>{title}</b>
     <div className="app-row">
       <div className="app-config">
-        <FileList onClick={(name, text) => {
+        <FileList state={state} onClick={(name, text) => {
           console.log(name, text)
           Chart.mandelbrot(canvas.current)
         }} />

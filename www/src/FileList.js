@@ -3,10 +3,11 @@ import DragAndDrop from './DragAndDrop'
 
 class FileList extends Component {
 
-  state = { files: {} }
+  // state = { files: {} }
 
   handleDrop = async (files) => {
-    const fileMap = this.state.files
+    // const fileMap = this.state.files
+    const fileMap = this.props.state.files()
     for (var i = 0; i < files.length; i++) {
       const file = files[i]
       const name = file.name
@@ -23,7 +24,12 @@ class FileList extends Component {
       console.log(`Added ${name}`)
       fileMap[name] = text
     }
-    this.setState({ files: fileMap })
+    console.log(fileMap)
+    this.props.state.set_files(fileMap)
+    this.setState()
+    console.log("log1")
+    console.log(this.props.state.files())
+    // this.setState({ files: fileMap })
   }
 
   render() {
@@ -32,10 +38,10 @@ class FileList extends Component {
         <div className="app-config-inner">
           <div>Config browser</div>
           <ol>
-            {Object.keys(this.state.files).map((name, i) =>
+            {Object.keys(this.props.state.files()).map((name, i) =>
               <li key={i}>
                 <button onClick={() =>
-                  this.props.onClick(name, this.state.files[name])
+                  this.props.onClick(name, this.props.state.files()[name])
                 }>{name}</button>
               </li>
             )}

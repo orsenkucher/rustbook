@@ -2,6 +2,7 @@ mod mandelbrot;
 mod utils;
 
 use js_sys::Array;
+use std::collections::HashMap;
 use wasm_bindgen::{prelude::*, JsCast};
 use web_sys::HtmlCanvasElement;
 
@@ -56,6 +57,12 @@ extern "C" {
     fn write_file(name: &str, contents: &str);
 }
 
+#[wasm_bindgen(module = "/www/src/logger.js")]
+extern "C" {
+    #[wasm_bindgen(js_name = logDebug)]
+    fn log_debug(message: &str);
+}
+
 /// Type alias for the result of a drawing function.
 pub type DrawResult<T> = Result<T, Box<dyn std::error::Error>>;
 
@@ -94,6 +101,7 @@ impl Chart {
 #[wasm_bindgen]
 pub struct State {
     logs: Vec<String>,
+    files: HashMap<String, String>,
 }
 
 #[wasm_bindgen]
@@ -101,10 +109,31 @@ impl State {
     pub fn new() -> State {
         Self {
             logs: (1..=5).map(|i| format!("{}", i)).collect(),
+            files: HashMap::new(),
         }
     }
 
     pub fn logs(&self) -> Array {
         self.logs.clone().into_iter().map(JsValue::from).collect()
+    }
+
+    pub fn log(&mut self, message: String) {
+        self.logs.push(message)
+    }
+
+    #[wasm_bindgen]
+    pub fn set_files(&mut self, value: JsValue) -> Result<(), JsValue> {
+        log_debug("Hello1");
+        let value: HashMap<String, String> = serde_wasm_bindgen::from_value(value)?;
+        log_debug("Hello2");
+        log_debug(&format!("files: {}", value.len()));
+        self.log(format!("files: {}", value.len()));
+        self.files = value;
+        Ok(())
+    }
+
+    #[wasm_bindgen]
+    pub fn files(&self) -> Result<JsValue, JsValue> {
+        serde_wasm_bindgen::to_value(&self.files).map_err(|err| err.into())
     }
 }
