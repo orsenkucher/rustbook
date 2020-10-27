@@ -1,18 +1,20 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Canvas from './Canvas';
 import FileList from './FileList';
 import Logs from './Logs';
 import { Chart, State } from "spectrum";
 // import * as spec from "spectrum";
 
-const canvas = React.createRef();
-const state = State.new();
+const canvas = React.createRef()
+const state = State.new()
 
-const App = ({ title }) =>
-  <div className="app"><b>{title}</b>
+const App = ({ title }) => {
+  const [logs, setLogs] = useState(state.logs());
+
+  return (<div className="app"><b>{title}</b>
     <div className="app-row">
       <div className="app-config">
-        <FileList state={state} onClick={(name, text) => {
+        <FileList state={state} setLogs={setLogs} onClick={(name, text) => {
           console.log(name, text)
           Chart.mandelbrot(canvas.current)
         }} />
@@ -25,8 +27,9 @@ const App = ({ title }) =>
       </div>
     </div>
     <div className="app-logs">
-      <Logs logs={state.logs()} />
+      <Logs logs={logs} />
     </div>
-  </div >;
+  </div >)
+}
 
 export default App

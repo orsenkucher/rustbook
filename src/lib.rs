@@ -2,6 +2,8 @@ mod mandelbrot;
 mod utils;
 
 use js_sys::Array;
+use log::{debug, info, Level};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use wasm_bindgen::{prelude::*, JsCast};
 use web_sys::HtmlCanvasElement;
@@ -53,14 +55,8 @@ pub fn ondrop(event: web_sys::DragEvent) {
 
 #[wasm_bindgen(module = "/www/src/saver.js")]
 extern "C" {
-    #[wasm_bindgen]
+    #[wasm_bindgen(js_name = writeFile)]
     fn write_file(name: &str, contents: &str);
-}
-
-#[wasm_bindgen(module = "/www/src/logger.js")]
-extern "C" {
-    #[wasm_bindgen(js_name = logDebug)]
-    fn log_debug(message: &str);
 }
 
 /// Type alias for the result of a drawing function.
@@ -98,7 +94,15 @@ impl Chart {
     }
 }
 
+#[wasm_bindgen(start)]
+pub fn main() {
+    console_log::init_with_level(Level::Debug).expect("error initializing logger");
+    utils::set_panic_hook();
+    info!("Logging initialized");
+}
+
 #[wasm_bindgen]
+#[derive(Serialize, Deserialize)]
 pub struct State {
     logs: Vec<String>,
     files: HashMap<String, String>,
@@ -107,6 +111,7 @@ pub struct State {
 #[wasm_bindgen]
 impl State {
     pub fn new() -> State {
+        info!("New state created");
         Self {
             logs: (1..=5).map(|i| format!("{}", i)).collect(),
             files: HashMap::new(),
@@ -121,19 +126,16 @@ impl State {
         self.logs.push(message)
     }
 
-    #[wasm_bindgen]
-    pub fn set_files(&mut self, value: JsValue) -> Result<(), JsValue> {
-        log_debug("Hello1");
-        let value: HashMap<String, String> = serde_wasm_bindgen::from_value(value)?;
-        log_debug("Hello2");
-        log_debug(&format!("files: {}", value.len()));
-        self.log(format!("files: {}", value.len()));
-        self.files = value;
-        Ok(())
+    #[wasm_bindgen(js_name = setFiles)]
+    pub fn set_files(&mut self, value: &JsValue) {
+        debug!("Received files");
+        let files = value.into_serde().unwrap();
+        self.files = files;
+        debug!("files: {}", self.files.len());
     }
 
-    #[wasm_bindgen]
-    pub fn files(&self) -> Result<JsValue, JsValue> {
-        serde_wasm_bindgen::to_value(&self.files).map_err(|err| err.into())
+    pub fn files(&self) -> JsValue {
+        debug!("Retrieved {} files", &self.files.len());
+        JsValue::from_serde(&self.files).unwrap()
     }
 }

@@ -1,13 +1,10 @@
-import React, { Component } from 'react'
+import React, { useState } from 'react'
 import DragAndDrop from './DragAndDrop'
 
-class FileList extends Component {
-
-  // state = { files: {} }
-
-  handleDrop = async (files) => {
-    // const fileMap = this.state.files
-    const fileMap = this.props.state.files()
+function FileList(props) {
+  // const [_, setState] = useState(props.state);
+  const handleDrop = async (files) => {
+    const fileMap = props.state.files()
     for (var i = 0; i < files.length; i++) {
       const file = files[i]
       const name = file.name
@@ -25,31 +22,30 @@ class FileList extends Component {
       fileMap[name] = text
     }
     console.log(fileMap)
-    this.props.state.set_files(fileMap)
-    this.setState()
-    console.log("log1")
-    console.log(this.props.state.files())
-    // this.setState({ files: fileMap })
+    props.state.log("JS: Updated files")
+    props.state.setFiles(fileMap)
+    props.setLogs(props.state.logs())
+    // setState(() => { })
+    console.log(props.state.logs())
+    console.log(props.state.files())
   }
 
-  render() {
-    return (
-      <DragAndDrop handleDrop={this.handleDrop}>
-        <div className="app-config-inner">
-          <div>Config browser</div>
-          <ol>
-            {Object.keys(this.props.state.files()).map((name, i) =>
-              <li key={i}>
-                <button onClick={() =>
-                  this.props.onClick(name, this.props.state.files()[name])
-                }>{name}</button>
-              </li>
-            )}
-          </ol>
-        </div>
-      </DragAndDrop >
-    )
-  }
+  return (
+    <DragAndDrop handleDrop={handleDrop}>
+      <div className="app-config-inner">
+        <div>Config browser</div>
+        <ol>
+          {Object.keys(props.state.files()).map((name, i) =>
+            <li key={i}>
+              <button onClick={() =>
+                props.onClick(name, props.state.files()[name])
+              }>{name}</button>
+            </li>
+          )}
+        </ol>
+      </div>
+    </DragAndDrop >
+  )
 }
 
 export default FileList
