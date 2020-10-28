@@ -105,7 +105,7 @@ pub fn main() {
 #[derive(Serialize, Deserialize)]
 pub struct State {
     logs: Vec<String>,
-    files: HashMap<String, String>,
+    files: HashMap<String, File>,
 }
 
 #[wasm_bindgen]
@@ -113,7 +113,7 @@ impl State {
     pub fn new() -> State {
         info!("New state created");
         Self {
-            logs: (1..=5).map(|i| format!("{}", i)).collect(),
+            logs: vec![String::from("Backend connected")],
             files: HashMap::new(),
         }
     }
@@ -123,19 +123,58 @@ impl State {
     }
 
     pub fn log(&mut self, message: String) {
-        self.logs.push(message)
+        info!("JS: {}", message);
+        self.logs.push(message);
     }
 
     #[wasm_bindgen(js_name = setFiles)]
     pub fn set_files(&mut self, value: &JsValue) {
         debug!("Received files");
-        let files = value.into_serde().unwrap();
-        self.files = files;
+        let files: HashMap<String, String> = value.into_serde().unwrap();
+        for (name, contents) in files {
+            if let Some(file) = self.files.get_mut(&name) {
+                file.modified = contents;
+            } else {
+                self.files.insert(name, File::new(contents));
+            }
+        }
         debug!("files: {}", self.files.len());
     }
 
     pub fn files(&self) -> JsValue {
         debug!("Retrieved {} files", &self.files.len());
-        JsValue::from_serde(&self.files).unwrap()
+        let map = js_sys::Map::new();
+        for (key, value) in &self.files {
+            map.set(&key.into(), &value.clone().into());
+        }
+        map.into()
+    }
+
+    pub fn download(&self, name: &str) {
+        write_file(name, &self.files[name].modified)
+    }
+}
+
+#[wasm_bindgen]
+#[derive(Serialize, Deserialize, Clone)]
+pub struct File {
+    original: String,
+    modified: String,
+}
+
+#[wasm_bindgen]
+impl File {
+    pub fn new(original: String) -> Self {
+        let modified = original.clone();
+        Self { original, modified }
+    }
+
+    pub fn modified(&self) -> String {
+        self.modified.clone()
+    }
+
+    #[wasm_bindgen(js_name = isModified)]
+    pub fn is_modified(&self) -> bool {
+        self.original != self.modified
     }
 }

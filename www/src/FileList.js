@@ -1,10 +1,14 @@
-import React, { useState } from 'react'
+import React from 'react'
 import DragAndDrop from './DragAndDrop'
 
 function FileList(props) {
-  // const [_, setState] = useState(props.state);
   const handleDrop = async (files) => {
-    const fileMap = props.state.files()
+    var modified = {}
+    for (const [key, value] of props.state.files()) {
+      modified[key] = value.modified
+    }
+
+    var updated = 0
     for (var i = 0; i < files.length; i++) {
       const file = files[i]
       const name = file.name
@@ -12,22 +16,27 @@ function FileList(props) {
       const ext = name.split('.').pop()
       if (ext != 'toml') continue
       const text = await file.text()
-      if (name in fileMap && fileMap[name] != text) {
+      if (name in modified) {
+        if (modified[name] == text) continue
         if (!confirm(`Replace ${name} file?`)) {
-          console.log(`Skipped ${name}`)
+          props.state.log(`Skipped ${name}`)
           continue
         }
       }
+      updated++
       console.log(`Added ${name}`)
-      fileMap[name] = text
+      modified[name] = text
     }
-    console.log(fileMap)
-    props.state.log("JS: Updated files")
-    props.state.setFiles(fileMap)
+    console.log(modified)
+    props.state.log(`Updated ${updated} files`)
+    props.state.setFiles(modified)
     props.setLogs(props.state.logs())
-    // setState(() => { })
-    console.log(props.state.logs())
     console.log(props.state.files())
+  }
+
+  const files = props.state.files()
+  for (const [key, value] of files) {
+    console.log(key, value.isModified())
   }
 
   return (
@@ -35,11 +44,13 @@ function FileList(props) {
       <div className="app-config-inner">
         <div>Config browser</div>
         <ol>
-          {Object.keys(props.state.files()).map((name, i) =>
+          {[...files].map(x => x[0]).map((name, i) =>
             <li key={i}>
-              <button onClick={() =>
-                props.onClick(name, props.state.files()[name])
-              }>{name}</button>
+              {files.get(name).isModified() ? "⚙️" : ""}
+              <button onClick={() => props.onClick(name)}>{name}</button>
+              {" "}
+              <button onClick={() => props.onDownload(name)}>⤓</button>
+              <div style={{ height: "4px" }}></div>
             </li>
           )}
         </ol>

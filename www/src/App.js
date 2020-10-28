@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Canvas from './Canvas';
 import FileList from './FileList';
 import Logs from './Logs';
@@ -11,13 +11,25 @@ const state = State.new()
 const App = ({ title }) => {
   const [logs, setLogs] = useState(state.logs());
 
+  useEffect(() => {
+    document.title = `Spectrum(${Object.keys(state.files()).length} open)`;
+  });
+
   return (<div className="app"><b>{title}</b>
     <div className="app-row">
       <div className="app-config">
-        <FileList state={state} setLogs={setLogs} onClick={(name, text) => {
-          console.log(name, text)
-          Chart.mandelbrot(canvas.current)
-        }} />
+        <FileList
+          state={state}
+          setLogs={setLogs}
+          onClick={name => {
+            state.log(`Plotting ${name}`)
+            Chart.mandelbrot(canvas.current)
+          }}
+          onDownload={name => {
+            state.log(`Downloading ${name}`)
+            state.download(name)
+          }}
+        />
       </div>
       <div>
         <Canvas ref={canvas} height={800} width={800} />
