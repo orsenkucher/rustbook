@@ -12,7 +12,7 @@ const App = ({ title }) => {
   const [logs, setLogs] = useState(state.logs());
 
   useEffect(() => {
-    document.title = `Spectrum(${Object.keys(state.files()).length} open)`;
+    document.title = `Spectrum: ${[...state.files()].length} open`;
   });
 
   return (<div className="app"><b>{title}</b>

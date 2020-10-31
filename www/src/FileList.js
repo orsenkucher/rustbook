@@ -5,7 +5,7 @@ function FileList(props) {
   const handleDrop = async (files) => {
     var modified = {}
     for (const [key, value] of props.state.files()) {
-      modified[key] = value.modified
+      modified[key] = value.modified()
     }
 
     var updated = 0
@@ -27,16 +27,19 @@ function FileList(props) {
       console.log(`Added ${name}`)
       modified[name] = text
     }
-    console.log(modified)
     props.state.log(`Updated ${updated} files`)
     props.state.setFiles(modified)
     props.setLogs(props.state.logs())
-    console.log(props.state.files())
   }
 
   const files = props.state.files()
-  for (const [key, value] of files) {
-    console.log(key, value.isModified())
+
+  const comp = (a, b) => {
+    var a = a.toUpperCase();
+    var b = b.toUpperCase();
+    if (a < b) return -1
+    if (a > b) return 1
+    return 0
   }
 
   return (
@@ -44,8 +47,8 @@ function FileList(props) {
       <div className="app-config-inner">
         <div>Config browser</div>
         <ol>
-          {[...files].map(x => x[0]).map((name, i) =>
-            <li key={i}>
+          {[...files].map(x => x[0]).sort(comp).map((name, i) =>
+            <li key={name + i}>
               {files.get(name).isModified() ? "⚙️" : ""}
               <button onClick={() => props.onClick(name)}>{name}</button>
               {" "}

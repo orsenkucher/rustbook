@@ -131,14 +131,18 @@ impl State {
     pub fn set_files(&mut self, value: &JsValue) {
         debug!("Received files");
         let files: HashMap<String, String> = value.into_serde().unwrap();
-        for (name, contents) in files {
-            if let Some(file) = self.files.get_mut(&name) {
-                file.modified = contents;
-            } else {
-                self.files.insert(name, File::new(contents));
-            }
-        }
+        self.files = files
+            .into_iter()
+            .map(|(key, value)| (key, File::new(value)))
+            .collect();
         debug!("files: {}", self.files.len());
+    }
+
+    #[wasm_bindgen(js_name = modFile)]
+    pub fn mod_file(&mut self, key: &str, modified: String) {
+        if let Some(file) = self.files.get_mut(key) {
+            file.modified = modified
+        }
     }
 
     pub fn files(&self) -> JsValue {
