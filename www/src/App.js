@@ -23,7 +23,7 @@ const App = ({ title }) => {
           setLogs={setLogs}
           onClick={name => {
             state.log(`Plotting ${name}`)
-            Chart.mandelbrot(canvas.current)
+            state.handle(canvas.current, name)
           }}
           onDownload={name => {
             state.log(`Downloading ${name}`)

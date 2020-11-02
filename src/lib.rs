@@ -5,6 +5,7 @@ use js_sys::Array;
 use log::{debug, info, Level};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use toml_edit::Document;
 use wasm_bindgen::{prelude::*, JsCast};
 use web_sys::HtmlCanvasElement;
 
@@ -156,6 +157,33 @@ impl State {
 
     pub fn download(&self, name: &str) {
         write_file(name, &self.files[name].modified)
+    }
+
+    pub fn handle(&self, canvas: HtmlCanvasElement, name: &str) -> Result<Chart, JsValue> {
+        let file = &self.files[name];
+        self.edit_config(&file.modified).unwrap();
+        Chart::mandelbrot(canvas)
+    }
+
+    fn edit_config(&self, config: &str) -> Result<(), Box<dyn std::error::Error>> {
+        let mut config = config.parse::<Document>()?;
+
+        let val_raw = config["data"]["name"].as_value_mut().unwrap();
+        let val_decor = val_raw.decor();
+        *val_raw = toml_edit::decorated(
+            "Orsen2 -> \"orsenkucher2\"".into(),
+            val_decor.prefix(),
+            val_decor.suffix(),
+        );
+
+        // config["data"].as_inline_table_mut().map(|t| t.fmt());
+
+        let result = config.to_string();
+        println!("{}", result);
+
+        // fs::write("package/Duplicate.toml", result)?;
+
+        Ok(())
     }
 }
 
