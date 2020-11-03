@@ -5,7 +5,7 @@ use js_sys::Array;
 use log::{debug, info, Level};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use toml_edit::Document;
+use toml_edit::{Document, Item, Value};
 use wasm_bindgen::{prelude::*, JsCast};
 use web_sys::HtmlCanvasElement;
 
@@ -161,30 +161,100 @@ impl State {
 
     pub fn handle(&self, canvas: HtmlCanvasElement, name: &str) -> Result<Chart, JsValue> {
         let file = &self.files[name];
-        self.edit_config(&file.modified).unwrap();
+        self.edit_config(name, &file.modified).unwrap();
         Chart::mandelbrot(canvas)
     }
 
-    fn edit_config(&self, config: &str) -> Result<(), Box<dyn std::error::Error>> {
-        let mut config = config.parse::<Document>()?;
+    fn edit_config(&self, name: &str, config: &str) -> Result<(), Box<dyn std::error::Error>> {
+        let config = config.parse::<Document>()?;
 
-        let val_raw = config["data"]["name"].as_value_mut().unwrap();
-        let val_decor = val_raw.decor();
-        *val_raw = toml_edit::decorated(
-            "Orsen2 -> \"orsenkucher2\"".into(),
-            val_decor.prefix(),
-            val_decor.suffix(),
-        );
+        let traversed = self.traverse_config(name, config);
+
+        info!("{:#?}", traversed);
+
+        // config.iter().for_each(|e| info!("{:?}", &e));
+
+        // let val_raw = config["data"]["name"].as_value_mut().unwrap();
+        // let val_decor = val_raw.decor();
+        // *val_raw = toml_edit::decorated(
+        //     "Orsen2 -> \"orsenkucher2\"".into(),
+        //     val_decor.prefix(),
+        //     val_decor.suffix(),
+        // );
 
         // config["data"].as_inline_table_mut().map(|t| t.fmt());
 
-        let result = config.to_string();
-        println!("{}", result);
+        // let result = config.to_string();
+        // println!("{}", result);
 
         // fs::write("package/Duplicate.toml", result)?;
 
         Ok(())
     }
+
+    fn traverse_config(&self, name: &str, doc: Document) -> Component {
+        // Component::Table(Table {
+        //     title: String::from(name),
+        //     components: doc
+        //         .root
+        //         .as_table()
+        //         .expect("Root is always a table")
+        //         .iter()
+        //         .map(Self::traverse_item)
+        //         .collect(),
+        // })
+        Self::traverse_item((name, &doc.root))
+    }
+
+    fn traverse_item((title, item): (&str, &Item)) -> Component {
+        if let Some(table) = item.as_table() {
+            Component::Table(Table {
+                title: String::from(title),
+                components: table.iter().map(Self::traverse_item).collect(),
+            })
+        } else {
+            let value = item.as_value().expect("Now item is value");
+            let decor = value.decor();
+            let annotation = if decor.prefix().is_empty() {
+                String::from(decor.suffix())
+            } else {
+                format!("{}\n{}", decor.prefix(), decor.suffix())
+            };
+            let value = match value {
+                Value::Integer(f) => f.value().to_string(),
+                Value::String(f) => f.value().to_string(),
+                Value::Float(f) => f.value().to_string(),
+                Value::DateTime(f) => f.value().to_string(),
+                Value::Boolean(f) => f.value().to_string(),
+                Value::Array(f) => f.to_string(),
+                Value::InlineTable(f) => f.to_string(),
+            };
+            Component::Row(Row {
+                key: String::from(title),
+                value,
+                annotation: String::from(annotation),
+            })
+        }
+    }
+}
+
+#[derive(Debug)]
+enum Component {
+    Table(Table),
+    Row(Row),
+}
+
+#[derive(Debug)]
+struct Table {
+    title: String,
+    components: Vec<Component>,
+}
+
+#[derive(Debug)]
+struct Row {
+    key: String,
+    value: String,
+    annotation: String,
 }
 
 #[wasm_bindgen]
