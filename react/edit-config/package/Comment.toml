@@ -1,0 +1,8 @@
+# This is head comment
+[data] # about data table
+# before name comment
+name = "spectrum" # config name
+# in-between comment
+author = "Orsen" # my name
+number = 137 # some number
+# tailing comment
