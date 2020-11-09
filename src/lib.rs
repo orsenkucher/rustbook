@@ -208,6 +208,7 @@ impl State {
 
     fn traverse_item((title, item): (&str, &Item)) -> Component {
         if let Some(table) = item.as_table() {
+            debug!("Table to string: {}", table.to_string());
             Component::Table(Table {
                 title: String::from(title),
                 components: table.iter().map(Self::traverse_item).collect(),
@@ -215,10 +216,12 @@ impl State {
         } else {
             let value = item.as_value().expect("Now item is value");
             let decor = value.decor();
-            let annotation = if decor.prefix().is_empty() {
-                String::from(decor.suffix())
+            let prefix = decor.prefix().trim();
+            let suffix = decor.suffix().trim();
+            let annotation = if prefix.is_empty() {
+                String::from(suffix)
             } else {
-                format!("{}\n{}", decor.prefix(), decor.suffix())
+                format!("{}\n{}", prefix, suffix)
             };
             let value = match value {
                 Value::Integer(f) => f.value().to_string(),
