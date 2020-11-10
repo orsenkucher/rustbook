@@ -5,7 +5,7 @@ use js_sys::Array;
 use log::{debug, info, Level};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use toml_edit::{Document, Item, Value};
+use toml_edit::{Decor, Document, TableKeyValue, Value};
 use wasm_bindgen::{prelude::*, JsCast};
 use web_sys::HtmlCanvasElement;
 
@@ -193,36 +193,25 @@ impl State {
     }
 
     fn traverse_config(&self, name: &str, doc: Document) -> Component {
-        // Component::Table(Table {
-        //     title: String::from(name),
-        //     components: doc
-        //         .root
-        //         .as_table()
-        //         .expect("Root is always a table")
-        //         .iter()
-        //         .map(Self::traverse_item)
-        //         .collect(),
-        // })
-        Self::traverse_item((name, &doc.root))
+        let doc = doc.as_table();
+        Component::Table(Table {
+            annotation: Annotation::from(&doc.decor),
+            title: String::from(name),
+            components: doc.iter_kv().map(Self::traverse_item).collect(),
+        })
     }
 
-    fn traverse_item((title, item): (&str, &Item)) -> Component {
-        if let Some(table) = item.as_table() {
-            debug!("Table to string: {}", table.to_string());
+    fn traverse_item((title, kv): (&str, &TableKeyValue)) -> Component {
+        if let Some(table) = kv.value().as_table() {
+            let decor = &table.decor;
             Component::Table(Table {
                 title: String::from(title),
-                components: table.iter().map(Self::traverse_item).collect(),
+                annotation: decor.into(),
+                components: table.iter_kv().map(Self::traverse_item).collect(),
             })
         } else {
-            let value = item.as_value().expect("Now item is value");
+            let value = kv.value().as_value().expect("Now item is value");
             let decor = value.decor();
-            let prefix = decor.prefix().trim();
-            let suffix = decor.suffix().trim();
-            let annotation = if prefix.is_empty() {
-                String::from(suffix)
-            } else {
-                format!("{}\n{}", prefix, suffix)
-            };
             let value = match value {
                 Value::Integer(f) => f.value().to_string(),
                 Value::String(f) => f.value().to_string(),
@@ -235,7 +224,7 @@ impl State {
             Component::Row(Row {
                 key: String::from(title),
                 value,
-                annotation: String::from(annotation),
+                annotation: decor.into(),
             })
         }
     }
@@ -248,8 +237,33 @@ enum Component {
 }
 
 #[derive(Debug)]
+struct Annotation {
+    headline: String,
+    footnote: String,
+}
+
+impl From<&Decor> for Annotation {
+    fn from(decor: &Decor) -> Self {
+        Self {
+            headline: decor.prefix().trim().to_string(),
+            footnote: decor.suffix().trim().to_string(),
+        }
+    }
+}
+
+impl From<(&Decor, &Decor)> for Annotation {
+    fn from((key, value): (&Decor, &Decor)) -> Self {
+        Self {
+            headline: key.prefix().trim().to_string(),
+            footnote: value.suffix().trim().to_string(),
+        }
+    }
+}
+
+#[derive(Debug)]
 struct Table {
     title: String,
+    annotation: Annotation,
     components: Vec<Component>,
 }
 
@@ -257,7 +271,7 @@ struct Table {
 struct Row {
     key: String,
     value: String,
-    annotation: String,
+    annotation: Annotation,
 }
 
 #[wasm_bindgen]
