@@ -107,6 +107,7 @@ pub fn main() {
 pub struct State {
     logs: Vec<String>,
     files: HashMap<String, File>,
+    component: Table,
 }
 
 #[wasm_bindgen]
@@ -116,6 +117,7 @@ impl State {
         Self {
             logs: vec![String::from("Backend connected")],
             files: HashMap::new(),
+            component: Table::new(),
         }
     }
 
@@ -157,6 +159,10 @@ impl State {
 
     pub fn download(&self, name: &str) {
         write_file(name, &self.files[name].modified)
+    }
+
+    pub fn component(&self) -> Table {
+        self.component.clone()
     }
 
     pub fn handle(&self, canvas: HtmlCanvasElement, name: &str) -> Result<Chart, JsValue> {
@@ -230,16 +236,28 @@ impl State {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 enum Component {
     Table(Table),
     Row(Row),
 }
 
-#[derive(Debug)]
-struct Annotation {
+#[wasm_bindgen]
+#[derive(Debug, Serialize, Deserialize, Default, Clone)]
+pub struct Annotation {
     headline: String,
     footnote: String,
+}
+
+#[wasm_bindgen]
+impl Annotation {
+    pub fn headline(&self) -> String {
+        self.headline.clone()
+    }
+
+    pub fn footnote(&self) -> String {
+        self.footnote.clone()
+    }
 }
 
 impl From<&Decor> for Annotation {
@@ -260,15 +278,38 @@ impl From<(&Decor, &Decor)> for Annotation {
     }
 }
 
-#[derive(Debug)]
-struct Table {
+#[wasm_bindgen]
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Table {
     title: String,
     annotation: Annotation,
     components: Vec<Component>,
 }
 
-#[derive(Debug)]
-struct Row {
+impl Table {
+    fn new() -> Self {
+        Self {
+            title: "empty".to_string(),
+            annotation: Default::default(),
+            components: Default::default(),
+        }
+    }
+}
+
+#[wasm_bindgen]
+impl Table {
+    pub fn title(&self) -> String {
+        self.title.clone()
+    }
+
+    pub fn annotation(&self) -> Annotation {
+        self.annotation.clone()
+    }
+}
+
+#[wasm_bindgen]
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Row {
     key: String,
     value: String,
     annotation: Annotation,

@@ -3,6 +3,7 @@ import Canvas from './Canvas';
 import FileList from './FileList';
 import Logs from './Logs';
 import { Chart, State } from "spectrum";
+import Component from './Component';
 // import * as spec from "spectrum";
 
 const canvas = React.createRef()
@@ -36,6 +37,7 @@ const App = ({ title }) => {
       </div>
       <div className="app-fields">
         <div>Fields editor</div>
+        <Component component={state.component()}></Component>
       </div>
     </div>
     <div className="app-logs">
