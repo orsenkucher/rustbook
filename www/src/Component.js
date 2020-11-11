@@ -7,27 +7,27 @@ function Component({ component }) {
     var res = []
     while (true) {
       const t = iter.next()
-      console.log("t: ", t)
+      // console.log("t: ", t)
 
       if (t == 'row') {
-        console.log("in row")
+        // console.log("in row")
         const row = iter.nextRow()
-        console.log(row.key())
+        // console.log(row.key())
         const rend = (<li key={row.key()}>
           <Row component={row}></Row>
         </li>)
 
         res.push(rend)
       } else if (t == 'table') {
-        console.log('in table')
+        // console.log('in table')
         const table = iter.nextTable()
-        console.log(table.title())
+        // console.log(table.title())
         const rend = (<li key={table.title()}>
           <Component component={table}></Component>
         </li>)
         res.push(rend)
       } else {
-        console.log('in break')
+        // console.log('in break')
         break;
       }
     }

@@ -25,13 +25,17 @@ const App = ({ title }) => {
           setLogs={setLogs}
           onClick={name => {
             state.log(`Plotting ${name}`)
-            state.handle(canvas.current, name)
+            try {
+              state.handle(canvas.current, name)
+            } catch { }
             setComponent(state.component())
             console.log('App title', state.component().title())
+            setLogs(state.logs())
           }}
           onDownload={name => {
             state.log(`Downloading ${name}`)
             state.download(name)
+            setLogs(state.logs())
           }}
         />
       </div>

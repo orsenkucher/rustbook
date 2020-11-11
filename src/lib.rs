@@ -166,7 +166,10 @@ impl State {
     }
 
     pub fn handle(&mut self, canvas: HtmlCanvasElement, name: &str) -> Result<Chart, JsValue> {
-        self.edit_config(name).unwrap();
+        self.edit_config(name).map_err(|err| {
+            self.log(err.to_string());
+            err.to_string()
+        })?;
         Chart::mandelbrot(canvas)
     }
 
