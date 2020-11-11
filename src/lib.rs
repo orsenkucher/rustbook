@@ -292,6 +292,7 @@ pub struct Table {
 
 impl Table {
     fn new() -> Self {
+        // Default::default()
         Self {
             title: "empty".to_string(),
             annotation: Default::default(),
@@ -309,6 +310,63 @@ impl Table {
     pub fn annotation(&self) -> Annotation {
         self.annotation.clone()
     }
+
+    // pub fn components(&self) -> Vec<(Option<Table>, Option<Row>)> {
+    //     self.components
+    //         .iter()
+    //         .map(|component| match component {
+    //             Component::Table(t) => (Some(t), None),
+    //             Component::Row(r) => (None, Some(r)),
+    //         })
+    //         .collect()
+    // }
+
+    pub fn components(&self) -> ComponentIter {
+        ComponentIter::new(&self.components)
+    }
+}
+
+#[wasm_bindgen]
+pub struct ComponentIter {
+    iter: Box<dyn Iterator<Item = Component>>,
+    item: Option<Component>,
+}
+
+impl ComponentIter {
+    fn new(components: &Vec<Component>) -> Self {
+        let iter = components.clone().into_iter();
+        Self {
+            iter: Box::new(iter),
+            item: None,
+        }
+    }
+}
+
+#[wasm_bindgen]
+impl ComponentIter {
+    pub fn next(&mut self) -> Option<String> {
+        self.item = self.iter.next();
+        self.item.as_ref().map(|it| match it {
+            Component::Table(_) => String::from("table"),
+            Component::Row(_) => String::from("row"),
+        })
+    }
+
+    #[wasm_bindgen(js_name = nextTable)]
+    pub fn next_table(&self) -> Option<Table> {
+        match &self.item {
+            Some(Component::Table(t)) => Some(t.clone()),
+            _ => None,
+        }
+    }
+
+    #[wasm_bindgen(js_name = nextRow)]
+    pub fn next_row(&self) -> Option<Row> {
+        match &self.item {
+            Some(Component::Row(r)) => Some(r.clone()),
+            _ => None,
+        }
+    }
 }
 
 #[wasm_bindgen]
@@ -317,6 +375,21 @@ pub struct Row {
     key: String,
     value: String,
     annotation: Annotation,
+}
+
+#[wasm_bindgen]
+impl Row {
+    pub fn key(&self) -> String {
+        self.key.clone()
+    }
+
+    pub fn value(&self) -> String {
+        self.value.clone()
+    }
+
+    pub fn annotation(&self) -> Annotation {
+        self.annotation.clone()
+    }
 }
 
 #[wasm_bindgen]
