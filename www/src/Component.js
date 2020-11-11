@@ -1,6 +1,7 @@
 import React from 'react'
 
 function Component({ component }) {
+  console.log('Component title', component.title())
   return (
     <div className="app-component">
       <div>title: {component.title()}</div>

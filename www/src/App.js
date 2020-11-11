@@ -11,6 +11,7 @@ const state = State.new()
 
 const App = ({ title }) => {
   const [logs, setLogs] = useState(state.logs());
+  const [component, setComponent] = useState(state.component());
 
   useEffect(() => {
     document.title = `Spectrum: ${[...state.files()].length} open`;
@@ -25,6 +26,8 @@ const App = ({ title }) => {
           onClick={name => {
             state.log(`Plotting ${name}`)
             state.handle(canvas.current, name)
+            setComponent(state.component())
+            console.log('App title', state.component().title())
           }}
           onDownload={name => {
             state.log(`Downloading ${name}`)
@@ -37,7 +40,7 @@ const App = ({ title }) => {
       </div>
       <div className="app-fields">
         <div>Fields editor</div>
-        <Component component={state.component()}></Component>
+        <Component component={component}></Component>
       </div>
     </div>
     <div className="app-logs">

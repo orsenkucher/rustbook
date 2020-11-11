@@ -165,18 +165,22 @@ impl State {
         self.component.clone()
     }
 
-    pub fn handle(&self, canvas: HtmlCanvasElement, name: &str) -> Result<Chart, JsValue> {
-        let file = &self.files[name];
-        self.edit_config(name, &file.modified).unwrap();
+    pub fn handle(&mut self, canvas: HtmlCanvasElement, name: &str) -> Result<Chart, JsValue> {
+        self.edit_config(name).unwrap();
         Chart::mandelbrot(canvas)
     }
 
-    fn edit_config(&self, name: &str, config: &str) -> Result<(), Box<dyn std::error::Error>> {
+    fn edit_config(&mut self, name: &str) -> Result<(), Box<dyn std::error::Error>> {
+        let config = &self.files[name].modified;
         let config = config.parse::<Document>()?;
 
         let traversed = self.traverse_config(name, config);
 
         info!("{:#?}", traversed);
+
+        if let Component::Table(table) = traversed {
+            self.component = table;
+        }
 
         // config.iter().for_each(|e| info!("{:?}", &e));
 
@@ -279,7 +283,7 @@ impl From<(&Decor, &Decor)> for Annotation {
 }
 
 #[wasm_bindgen]
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct Table {
     title: String,
     annotation: Annotation,
