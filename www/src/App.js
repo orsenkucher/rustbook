@@ -45,9 +45,9 @@ const App = ({ title }) => {
       <div className="app-fields">
         <div>Fields editor</div>
         <Component component={component} setComponent={() => {
+          state.evaluate()
+          setLogs(state.logs())
           // setComponent(state.component)
-          console.log('UPDATING')
-          console.log(state.component())
         }}></Component>
       </div>
     </div>

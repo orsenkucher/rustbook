@@ -4,7 +4,7 @@ mod utils;
 use js_sys::Array;
 use log::{debug, info, Level};
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, rc::Rc};
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 use toml_edit::{Decor, Document, TableKeyValue, Value};
 use wasm_bindgen::{prelude::*, JsCast};
 use web_sys::HtmlCanvasElement;
@@ -108,7 +108,7 @@ pub struct State {
     logs: Vec<String>,
     files: HashMap<String, File>,
     component: Table,
-    document: Option<Rc<Document>>,
+    document: Option<(String, Rc<RefCell<Document>>)>,
 }
 
 #[wasm_bindgen]
@@ -208,9 +208,10 @@ impl State {
     }
 
     fn traverse_config(&mut self, name: &str, doc: Document) -> Component {
-        let doc = Rc::new(doc);
-        self.document = Some(Rc::clone(&doc));
-        let table = self.document.as_ref().unwrap().as_table();
+        let doc = Rc::new(RefCell::new(doc));
+        self.document = Some((String::from(name), Rc::clone(&doc)));
+        let doc_ref = doc.borrow();
+        let table = doc_ref.as_table();
         Component::Table(Table {
             annotation: Annotation::from(&table.decor),
             title: String::from(name),
@@ -225,7 +226,7 @@ impl State {
     fn traverse_item(
         (title, kv): (&str, &TableKeyValue),
         mut path: Vec<String>,
-        doc: Rc<Document>,
+        doc: Rc<RefCell<Document>>,
     ) -> Component {
         path.push(String::from(title));
         if let Some(table) = kv.value().as_table() {
@@ -255,9 +256,16 @@ impl State {
                 key: String::from(title),
                 value,
                 doc,
-                path: vec![],
+                path: path.clone(),
                 annotation: decor.into(),
             })
+        }
+    }
+
+    pub fn evaluate(&mut self) {
+        if let Some((name, doc)) = &self.document {
+            let file = self.files.get_mut(name).unwrap();
+            file.modified = format!("{}", doc.borrow());
         }
     }
 }
@@ -311,7 +319,7 @@ pub struct Table {
     title: String,
     annotation: Annotation,
     components: Vec<Component>,
-    doc: Rc<Document>,
+    doc: Rc<RefCell<Document>>,
 }
 
 impl Table {
@@ -398,7 +406,7 @@ pub struct Row {
     value: String,
     annotation: Annotation,
     path: Vec<String>,
-    doc: Rc<Document>,
+    doc: Rc<RefCell<Document>>,
 }
 
 #[wasm_bindgen]
@@ -418,15 +426,13 @@ impl Row {
     #[wasm_bindgen(js_name=modifyValue)]
     pub fn modify_value(&mut self, value: &str) {
         info!("modifying value {}", value);
-        self.value = String::from(value)
+        self.value = String::from(value);
+        self.mutate_doc(value);
     }
 
-    fn mutate(&mut self, value: &str) {
-        let mut row = self
-            .path
-            .iter()
-            .fold(&mut self.doc.root, |item, key| &mut item[key]);
-
+    fn mutate_doc(&self, value: &str) {
+        let root = &mut self.doc.borrow_mut().root;
+        let row = self.path.iter().fold(root, |item, key| &mut item[key]);
         row.as_value_mut().unwrap().mutate(value.into());
     }
 }
