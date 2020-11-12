@@ -1,7 +1,7 @@
 import React from 'react'
 import Row from './Row';
 
-function Component({ component }) {
+function Component({ component, setComponent }) {
   const componentsMap = (iter) => {
     console.log("Mapping")
     var res = []
@@ -14,7 +14,7 @@ function Component({ component }) {
         const row = iter.nextRow()
         // console.log(row.key())
         const rend = (<li key={row.key()}>
-          <Row component={row}></Row>
+          <Row component={row} setComponent={setComponent}></Row>
         </li>)
 
         res.push(rend)
@@ -23,7 +23,7 @@ function Component({ component }) {
         const table = iter.nextTable()
         // console.log(table.title())
         const rend = (<li key={table.title()}>
-          <Component component={table}></Component>
+          <Component component={table} setComponent={setComponent}></Component>
         </li>)
         res.push(rend)
       } else {

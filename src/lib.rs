@@ -4,7 +4,7 @@ mod utils;
 use js_sys::Array;
 use log::{debug, info, Level};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::{collections::HashMap, rc::Rc};
 use toml_edit::{Decor, Document, TableKeyValue, Value};
 use wasm_bindgen::{prelude::*, JsCast};
 use web_sys::HtmlCanvasElement;
@@ -103,11 +103,12 @@ pub fn main() {
 }
 
 #[wasm_bindgen]
-#[derive(Serialize, Deserialize)]
+// #[derive(Serialize, Deserialize)]
 pub struct State {
     logs: Vec<String>,
     files: HashMap<String, File>,
     component: Table,
+    document: Option<Rc<Document>>,
 }
 
 #[wasm_bindgen]
@@ -118,6 +119,7 @@ impl State {
             logs: vec![String::from("Backend connected")],
             files: HashMap::new(),
             component: Table::new(),
+            document: None,
         }
     }
 
@@ -205,22 +207,37 @@ impl State {
         Ok(())
     }
 
-    fn traverse_config(&self, name: &str, doc: Document) -> Component {
-        let doc = doc.as_table();
+    fn traverse_config(&mut self, name: &str, doc: Document) -> Component {
+        let doc = Rc::new(doc);
+        self.document = Some(Rc::clone(&doc));
+        let table = self.document.as_ref().unwrap().as_table();
         Component::Table(Table {
-            annotation: Annotation::from(&doc.decor),
+            annotation: Annotation::from(&table.decor),
             title: String::from(name),
-            components: doc.iter_kv().map(Self::traverse_item).collect(),
+            doc: Rc::clone(&doc),
+            components: table
+                .iter_kv()
+                .map(|kv| Self::traverse_item(kv, vec![], Rc::clone(&doc)))
+                .collect(),
         })
     }
 
-    fn traverse_item((title, kv): (&str, &TableKeyValue)) -> Component {
+    fn traverse_item(
+        (title, kv): (&str, &TableKeyValue),
+        mut path: Vec<String>,
+        doc: Rc<Document>,
+    ) -> Component {
+        path.push(String::from(title));
         if let Some(table) = kv.value().as_table() {
             let decor = &table.decor;
             Component::Table(Table {
                 title: String::from(title),
+                doc: Rc::clone(&doc),
                 annotation: decor.into(),
-                components: table.iter_kv().map(Self::traverse_item).collect(),
+                components: table
+                    .iter_kv()
+                    .map(|kv| Self::traverse_item(kv, path.clone(), Rc::clone(&doc)))
+                    .collect(),
             })
         } else {
             let value = kv.value().as_value().expect("Now item is value");
@@ -237,20 +254,23 @@ impl State {
             Component::Row(Row {
                 key: String::from(title),
                 value,
+                doc,
+                path: vec![],
                 annotation: decor.into(),
             })
         }
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+//  Serialize, Deserialize,
+#[derive(Debug, Clone)]
 enum Component {
     Table(Table),
     Row(Row),
 }
 
-#[wasm_bindgen]
-#[derive(Debug, Serialize, Deserialize, Default, Clone)]
+#[wasm_bindgen] //  Serialize, Deserialize,
+#[derive(Debug, Default, Clone)]
 pub struct Annotation {
     headline: String,
     footnote: String,
@@ -285,21 +305,20 @@ impl From<(&Decor, &Decor)> for Annotation {
     }
 }
 
-#[wasm_bindgen]
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+#[wasm_bindgen] //  Serialize, Deserialize,
+#[derive(Debug, Clone, Default)]
 pub struct Table {
     title: String,
     annotation: Annotation,
     components: Vec<Component>,
+    doc: Rc<Document>,
 }
 
 impl Table {
     fn new() -> Self {
-        // Default::default()
         Self {
             title: "empty".to_string(),
-            annotation: Default::default(),
-            components: Default::default(),
+            ..Default::default()
         }
     }
 }
@@ -372,12 +391,14 @@ impl ComponentIter {
     }
 }
 
-#[wasm_bindgen]
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[wasm_bindgen] // Serialize, Deserialize,
+#[derive(Debug, Clone)]
 pub struct Row {
     key: String,
     value: String,
     annotation: Annotation,
+    path: Vec<String>,
+    doc: Rc<Document>,
 }
 
 #[wasm_bindgen]
@@ -392,6 +413,21 @@ impl Row {
 
     pub fn annotation(&self) -> Annotation {
         self.annotation.clone()
+    }
+
+    #[wasm_bindgen(js_name=modifyValue)]
+    pub fn modify_value(&mut self, value: &str) {
+        info!("modifying value {}", value);
+        self.value = String::from(value)
+    }
+
+    fn mutate(&mut self, value: &str) {
+        let mut row = self
+            .path
+            .iter()
+            .fold(&mut self.doc.root, |item, key| &mut item[key]);
+
+        row.as_value_mut().unwrap().mutate(value.into());
     }
 }
 
