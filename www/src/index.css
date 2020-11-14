@@ -58,7 +58,7 @@ ol, ul {
 
 
 .app-component{
-    background-color: khaki;
+    /* background-color: khaki; */
   /* border-color: grey;
   border-width: 2px;
   border-left-style: dashed; */
@@ -68,4 +68,15 @@ ol, ul {
 
 
 .app-component-row{
+  margin-top: 4px;
+}
+
+ul.menu li a:before, ul.menu li .item:before, ul.menu li .separator:before {
+  content: "\2022";
+  font-family: FontAwesome;
+  margin-right: 10px;
+  display: inline;
+  vertical-align: middle;
+  font-size: 1.6em;
+  font-weight: normal;
 }

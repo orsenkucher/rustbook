@@ -12,15 +12,17 @@ function Row({ component, setComponent }) {
   console.log('Component(Row) key', component.key())
   return (
     <div className="app-component-row">
-      <div>key: {component.key()}</div>
-      {/* <div>value: {component.value()} */}
-      <div>value:
-        <input type="text" value={value} onChange={valueChange} />
-        {/* <input type="text" value={component.value()} onChange={valueChange} /> */}
+      {(() => {
+        const headline = component.annotation().headline();
+        if (headline) return (<div><b><i>{headline}</i></b></div>)
+      })()}
+
+      <div>{component.key()}: {<input type="text" value={value} onChange={valueChange} />} {(() => {
+        const footnote = component.annotation().footnote();
+        if (footnote) return (<i>{footnote}</i>)
+      })()}
       </div>
-      <div>headline: {component.annotation().headline()}</div>
-      <div>footnote: {component.annotation().footnote()}</div>
-    </div>
+    </div >
   )
 }
 

@@ -37,19 +37,19 @@ function Component({ component, setComponent }) {
   console.log('Component(Table) title', component.title())
   return (
     <div className="app-component">
-      <div>title: {component.title()}</div>
-      <div>headline: {component.annotation().headline()}</div>
-      <div>footnote: {component.annotation().footnote()}</div>
-      <ol>
-        {
-          componentsMap(component.components())
-          // props.components.map((component, i) =>
-          //   <li key={component + i}>
-          //     <Component props={component}></Component>
-          //   </li>
-          // )
-        }
-      </ol>
+      <div><b>{component.title()}</b></div>
+
+      {(() => {
+        const headline = component.annotation().headline();
+        if (headline) return (<div><b><i>{headline}</i></b></div>)
+      })()}
+
+      {(() => {
+        const footnote = component.annotation().footnote();
+        if (footnote) return (<div><i>{footnote}</i></div>)
+      })()}
+
+      <ul>{componentsMap(component.components())}</ul>
     </div>
   )
 }

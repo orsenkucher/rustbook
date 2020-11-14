@@ -242,7 +242,7 @@ impl State {
             })
         } else {
             let value = kv.value().as_value().expect("Now item is value");
-            let decor = value.decor();
+            let decor = kv.decor().unwrap();
             let value = match value {
                 Value::Integer(f) => f.value().to_string(),
                 Value::String(f) => f.value().to_string(),
