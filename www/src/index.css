@@ -55,3 +55,17 @@ ol, ul {
   border-top-style: dashed;
   /* background-color: khaki; */
 }
+
+
+.app-component{
+    background-color: khaki;
+  /* border-color: grey;
+  border-width: 2px;
+  border-left-style: dashed; */
+  margin-top: 12px;
+  margin-left: 12px;
+}
+
+
+.app-component-row{
+}

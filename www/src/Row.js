@@ -11,7 +11,7 @@ function Row({ component, setComponent }) {
 
   console.log('Component(Row) key', component.key())
   return (
-    <div className="app-component">
+    <div className="app-component-row">
       <div>key: {component.key()}</div>
       {/* <div>value: {component.value()} */}
       <div>value:
