@@ -17,10 +17,11 @@ function Row({ component, setComponent }) {
         if (headline) return (<div><b><i>{headline}</i></b></div>)
       })()}
 
-      <div>{component.key()}: {<input type="text" value={value} onChange={valueChange} />} {(() => {
-        const footnote = component.annotation().footnote();
-        if (footnote) return (<i>{footnote}</i>)
-      })()}
+      <div>{component.key()}: {<input type="text" value={value} onChange={valueChange} />}
+        {component.isModified() ? "⚙️" : ""} {(() => {
+          const footnote = component.annotation().footnote();
+          if (footnote) return (<i>{footnote}</i>)
+        })()}
       </div>
     </div >
   )

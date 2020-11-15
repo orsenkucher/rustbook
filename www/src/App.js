@@ -46,7 +46,7 @@ const App = ({ title }) => {
         <Component component={component} setComponent={() => {
           state.evaluate()
           setLogs(state.logs())
-          // setComponent(state.component)
+          // setComponent(state.component())
         }}></Component>
       </div>
     </div>

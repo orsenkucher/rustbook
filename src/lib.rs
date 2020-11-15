@@ -254,7 +254,7 @@ impl State {
             };
             Component::Row(Row {
                 key: String::from(title),
-                value,
+                value: vec![value],
                 doc,
                 path: path.clone(),
                 annotation: decor.into(),
@@ -403,7 +403,7 @@ impl ComponentIter {
 #[derive(Debug, Clone)]
 pub struct Row {
     key: String,
-    value: String,
+    value: Vec<String>,
     annotation: Annotation,
     path: Vec<String>,
     doc: Rc<RefCell<Document>>,
@@ -416,17 +416,23 @@ impl Row {
     }
 
     pub fn value(&self) -> String {
-        self.value.clone()
+        self.value.last().unwrap().clone()
     }
 
     pub fn annotation(&self) -> Annotation {
         self.annotation.clone()
     }
 
+    #[wasm_bindgen(js_name=isModified)]
+    pub fn is_modified(&self) -> bool {
+        info!("values: {:?}", self.value);
+        info!("res: {:?}", self.value.first() != self.value.last());
+        self.value.first() != self.value.last()
+    }
+
     #[wasm_bindgen(js_name=modifyValue)]
     pub fn modify_value(&mut self, value: &str) {
-        info!("modifying value {}", value);
-        self.value = String::from(value);
+        self.value.push(String::from(value));
         self.mutate_doc(value);
     }
 
