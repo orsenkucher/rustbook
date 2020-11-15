@@ -4,7 +4,11 @@ mod utils;
 use js_sys::Array;
 use log::{debug, info, Level};
 use serde::{Deserialize, Serialize};
-use std::{cell::RefCell, collections::HashMap, rc::Rc};
+use std::{
+    cell::RefCell,
+    collections::{hash_map::Entry, HashMap},
+    rc::Rc,
+};
 use toml_edit::{Decor, Document, TableKeyValue, Value};
 use wasm_bindgen::{prelude::*, JsCast};
 use web_sys::HtmlCanvasElement;
@@ -107,7 +111,7 @@ pub fn main() {
 pub struct State {
     logs: Vec<String>,
     files: HashMap<String, File>,
-    component: (String, HashMap<String, Table>),
+    component: (String, HashMap<String, TableWrapper>),
     document: Option<(String, Rc<RefCell<Document>>)>,
 }
 
@@ -116,7 +120,9 @@ impl State {
     pub fn new() -> State {
         info!("New state created");
         let mut component = (String::from("empty"), HashMap::new());
-        component.1.insert(component.0.clone(), Table::new());
+        component
+            .1
+            .insert(component.0.clone(), TableWrapper::new(Table::new()));
         Self {
             logs: vec![String::from("Backend connected")],
             files: HashMap::new(),
@@ -165,7 +171,7 @@ impl State {
         write_file(name, &self.files[name].modified)
     }
 
-    pub fn component(&self) -> Table {
+    pub fn component(&self) -> TableWrapper {
         self.component.1[&self.component.0].clone()
     }
 
@@ -181,34 +187,35 @@ impl State {
         let config = &self.files[name].modified;
         let config = config.parse::<Document>()?;
 
-        let traversed = self.traverse_config(name, config);
+        self.component.0 = String::from(name);
+        let vacant = match self.component.1.entry(self.component.0.clone()) {
+            Entry::Vacant(_) => true,
+            _ => false,
+        };
 
-        info!("{:#?}", traversed);
-
-        if let Component::Table(table) = traversed {
-            self.component.0 = String::from(name);
-            self.component
-                .1
-                .entry(self.component.0.clone())
-                .or_insert(table);
+        if vacant {
+            let traversed = self.traverse_config(name, config);
+            info!("{:#?}", traversed);
+            self.component.1.insert(
+                self.component.0.clone(),
+                match traversed {
+                    Component::Table(t) => t,
+                    _ => panic!("root component is always a table"),
+                },
+            );
         }
 
-        // config.iter().for_each(|e| info!("{:?}", &e));
-
-        // let val_raw = config["data"]["name"].as_value_mut().unwrap();
-        // let val_decor = val_raw.decor();
-        // *val_raw = toml_edit::decorated(
-        //     "Orsen2 -> \"orsenkucher2\"".into(),
-        //     val_decor.prefix(),
-        //     val_decor.suffix(),
-        // );
-
-        // config["data"].as_inline_table_mut().map(|t| t.fmt());
-
-        // let result = config.to_string();
-        // println!("{}", result);
-
-        // fs::write("package/Duplicate.toml", result)?;
+        // self.component
+        //     .1
+        //     .entry(self.component.0.clone())
+        //     .or_insert_with(|| {
+        //         let traversed = self.traverse_config(name, config);
+        //         info!("{:#?}", traversed);
+        //         match traversed {
+        //             Component::Table(t) => t,
+        //             _ => panic!("root component is always a table"),
+        //         }
+        //     });
 
         Ok(())
     }
@@ -218,7 +225,7 @@ impl State {
         self.document = Some((String::from(name), Rc::clone(&doc)));
         let doc_ref = doc.borrow();
         let table = doc_ref.as_table();
-        Component::Table(Table {
+        Component::Table(TableWrapper::new(Table {
             annotation: Annotation::from(&table.decor),
             title: String::from(name),
             doc: Rc::clone(&doc),
@@ -226,7 +233,7 @@ impl State {
                 .iter_kv()
                 .map(|kv| Self::traverse_item(kv, vec![], Rc::clone(&doc)))
                 .collect(),
-        })
+        }))
     }
 
     fn traverse_item(
@@ -237,7 +244,7 @@ impl State {
         path.push(String::from(title));
         if let Some(table) = kv.value().as_table() {
             let decor = &table.decor;
-            Component::Table(Table {
+            Component::Table(TableWrapper::new(Table {
                 title: String::from(title),
                 doc: Rc::clone(&doc),
                 annotation: decor.into(),
@@ -245,7 +252,7 @@ impl State {
                     .iter_kv()
                     .map(|kv| Self::traverse_item(kv, path.clone(), Rc::clone(&doc)))
                     .collect(),
-            })
+            }))
         } else {
             let value = kv.value().as_value().expect("Now item is value");
             let decor = kv.decor().unwrap();
@@ -271,6 +278,7 @@ impl State {
     pub fn evaluate(&mut self) {
         if let Some((name, doc)) = &self.document {
             let file = self.files.get_mut(name).unwrap();
+            info!("Name: {}, Doc: {}", name, doc.borrow());
             file.modified = format!("{}", doc.borrow());
         }
     }
@@ -279,7 +287,7 @@ impl State {
 //  Serialize, Deserialize,
 #[derive(Debug, Clone)]
 enum Component {
-    Table(Table),
+    Table(TableWrapper),
     Row(RowWrapper),
 }
 
@@ -328,6 +336,29 @@ pub struct Table {
     doc: Rc<RefCell<Document>>,
 }
 
+#[wasm_bindgen]
+#[derive(Debug, Clone)]
+pub struct TableWrapper(Rc<RefCell<Table>>);
+
+#[wasm_bindgen]
+impl TableWrapper {
+    fn new(table: Table) -> Self {
+        Self(Rc::new(RefCell::new(table)))
+    }
+
+    pub fn title(&self) -> String {
+        self.0.borrow().title()
+    }
+
+    pub fn annotation(&self) -> Annotation {
+        self.0.borrow().annotation()
+    }
+
+    pub fn components(&self) -> ComponentIter {
+        self.0.borrow().components()
+    }
+}
+
 impl Table {
     fn new() -> Self {
         Self {
@@ -346,16 +377,6 @@ impl Table {
     pub fn annotation(&self) -> Annotation {
         self.annotation.clone()
     }
-
-    // pub fn components(&self) -> Vec<(Option<Table>, Option<Row>)> {
-    //     self.components
-    //         .iter()
-    //         .map(|component| match component {
-    //             Component::Table(t) => (Some(t), None),
-    //             Component::Row(r) => (None, Some(r)),
-    //         })
-    //         .collect()
-    // }
 
     pub fn components(&self) -> ComponentIter {
         ComponentIter::new(&self.components)
@@ -389,7 +410,7 @@ impl ComponentIter {
     }
 
     #[wasm_bindgen(js_name = nextTable)]
-    pub fn next_table(&self) -> Option<Table> {
+    pub fn next_table(&self) -> Option<TableWrapper> {
         match &self.item {
             Some(Component::Table(t)) => Some(t.clone()),
             _ => None,
