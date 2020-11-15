@@ -252,13 +252,13 @@ impl State {
                 Value::Array(f) => f.to_string(),
                 Value::InlineTable(f) => f.to_string(),
             };
-            Component::Row(Row {
+            Component::Row(RowWrapper::new(Row {
                 key: String::from(title),
                 value: vec![value],
                 doc,
                 path: path.clone(),
                 annotation: decor.into(),
-            })
+            }))
         }
     }
 
@@ -274,7 +274,7 @@ impl State {
 #[derive(Debug, Clone)]
 enum Component {
     Table(Table),
-    Row(Row),
+    Row(RowWrapper),
 }
 
 #[wasm_bindgen] //  Serialize, Deserialize,
@@ -391,7 +391,7 @@ impl ComponentIter {
     }
 
     #[wasm_bindgen(js_name = nextRow)]
-    pub fn next_row(&self) -> Option<Row> {
+    pub fn next_row(&self) -> Option<RowWrapper> {
         match &self.item {
             Some(Component::Row(r)) => Some(r.clone()),
             _ => None,
@@ -400,13 +400,50 @@ impl ComponentIter {
 }
 
 #[wasm_bindgen] // Serialize, Deserialize,
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct Row {
     key: String,
     value: Vec<String>,
     annotation: Annotation,
     path: Vec<String>,
     doc: Rc<RefCell<Document>>,
+}
+
+#[wasm_bindgen]
+#[derive(Debug, Clone)]
+pub struct RowWrapper(Rc<RefCell<Row>>);
+
+#[wasm_bindgen]
+impl RowWrapper {
+    fn new(row: Row) -> Self {
+        Self(Rc::new(RefCell::new(row)))
+    }
+
+    fn clone(&self) -> Self {
+        Self(Rc::clone(&self.0))
+    }
+
+    pub fn key(&self) -> String {
+        self.0.borrow().key()
+    }
+
+    pub fn value(&self) -> String {
+        self.0.borrow().value()
+    }
+
+    pub fn annotation(&self) -> Annotation {
+        self.0.borrow().annotation()
+    }
+
+    #[wasm_bindgen(js_name=isModified)]
+    pub fn is_modified(&self) -> bool {
+        self.0.borrow().is_modified()
+    }
+
+    #[wasm_bindgen(js_name=modifyValue)]
+    pub fn modify_value(&mut self, value: &str) {
+        self.0.borrow_mut().modify_value(value);
+    }
 }
 
 #[wasm_bindgen]
