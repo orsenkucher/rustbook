@@ -107,7 +107,7 @@ pub fn main() {
 pub struct State {
     logs: Vec<String>,
     files: HashMap<String, File>,
-    component: Table,
+    component: (String, HashMap<String, Table>),
     document: Option<(String, Rc<RefCell<Document>>)>,
 }
 
@@ -115,10 +115,12 @@ pub struct State {
 impl State {
     pub fn new() -> State {
         info!("New state created");
+        let mut component = (String::from("empty"), HashMap::new());
+        component.1.insert(component.0.clone(), Table::new());
         Self {
             logs: vec![String::from("Backend connected")],
             files: HashMap::new(),
-            component: Table::new(),
+            component,
             document: None,
         }
     }
@@ -164,7 +166,7 @@ impl State {
     }
 
     pub fn component(&self) -> Table {
-        self.component.clone()
+        self.component.1[&self.component.0].clone()
     }
 
     pub fn handle(&mut self, canvas: HtmlCanvasElement, name: &str) -> Result<Chart, JsValue> {
@@ -184,7 +186,11 @@ impl State {
         info!("{:#?}", traversed);
 
         if let Component::Table(table) = traversed {
-            self.component = table;
+            self.component.0 = String::from(name);
+            self.component
+                .1
+                .entry(self.component.0.clone())
+                .or_insert(table);
         }
 
         // config.iter().for_each(|e| info!("{:?}", &e));
