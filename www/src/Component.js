@@ -7,27 +7,21 @@ function Component({ component, setComponent }) {
     var res = []
     while (true) {
       const t = iter.next()
-      // console.log("t: ", t)
 
       if (t == 'row') {
-        // console.log("in row")
         const row = iter.nextRow()
-        // console.log(row.key())
         const rend = (<li key={row.key()}>
           <Row component={row} setComponent={setComponent}></Row>
         </li>)
 
         res.push(rend)
       } else if (t == 'table') {
-        // console.log('in table')
         const table = iter.nextTable()
-        // console.log(table.title())
         const rend = (<li key={table.title()}>
           <Component component={table} setComponent={setComponent}></Component>
         </li>)
         res.push(rend)
       } else {
-        // console.log('in break')
         break;
       }
     }

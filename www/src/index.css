@@ -1,6 +1,5 @@
 body {
   font: 16px "Century Gothic", Futura, sans-serif;
-  /* margin: 20px; */
 }
 
 ol, ul {
@@ -53,22 +52,17 @@ ol, ul {
   border-color: grey;
   border-width: 2px;
   border-top-style: dashed;
-  /* background-color: khaki; */
 }
 
 
 .app-component{
-    /* background-color: khaki; */
-  /* border-color: grey;
-  border-width: 2px;
-  border-left-style: dashed; */
   margin-top: 12px;
   margin-left: 12px;
 }
 
 
 .app-component-row{
-  margin-top: 4px;
+  margin-top: 8px;
 }
 
 ul.menu li a:before, ul.menu li .item:before, ul.menu li .separator:before {
@@ -84,7 +78,6 @@ ul.menu li a:before, ul.menu li .item:before, ul.menu li .separator:before {
 input {
   width: auto;
   font: 16px "Century Gothic", Futura, sans-serif;
-  margin: 0px 0px 4px 0px;
   box-sizing: border-box;
   padding: 0px 4px;
 }

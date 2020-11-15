@@ -2,9 +2,8 @@ import React, { useState, useEffect } from 'react';
 import Canvas from './Canvas';
 import FileList from './FileList';
 import Logs from './Logs';
-import { Chart, State } from "spectrum";
+import { State } from "spectrum";
 import Component from './Component';
-// import * as spec from "spectrum";
 
 const canvas = React.createRef()
 const state = State.new()
