@@ -203,6 +203,9 @@ impl State {
                     _ => panic!("root component is always a table"),
                 },
             );
+        } else {
+            let c = &self.component.1[&self.component.0];
+            self.document = Some((String::from(name), Rc::clone(&c.0.borrow().doc)));
         }
 
         // self.component
