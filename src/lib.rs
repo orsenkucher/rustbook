@@ -185,16 +185,15 @@ impl State {
 
     fn edit_config(&mut self, name: &str) -> Result<(), Box<dyn std::error::Error>> {
         let config = &self.files[name].modified;
-        let config = config.parse::<Document>()?;
+        let doc = config.parse::<Document>()?;
 
         self.component.0 = String::from(name);
-        let vacant = match self.component.1.entry(self.component.0.clone()) {
-            Entry::Vacant(_) => true,
-            _ => false,
-        };
 
+        let vacant = self.component.1.get(&self.component.0).is_none();
         if vacant {
-            let traversed = self.traverse_config(name, config);
+            let doc = Rc::new(RefCell::new(doc));
+            self.document = Some((String::from(name), Rc::clone(&doc)));
+            let traversed = self.traverse_doc(name, doc);
             info!("{:#?}", traversed);
             self.component.1.insert(
                 self.component.0.clone(),
@@ -208,24 +207,10 @@ impl State {
             self.document = Some((String::from(name), Rc::clone(&c.0.borrow().doc)));
         }
 
-        // self.component
-        //     .1
-        //     .entry(self.component.0.clone())
-        //     .or_insert_with(|| {
-        //         let traversed = self.traverse_config(name, config);
-        //         info!("{:#?}", traversed);
-        //         match traversed {
-        //             Component::Table(t) => t,
-        //             _ => panic!("root component is always a table"),
-        //         }
-        //     });
-
         Ok(())
     }
 
-    fn traverse_config(&mut self, name: &str, doc: Document) -> Component {
-        let doc = Rc::new(RefCell::new(doc));
-        self.document = Some((String::from(name), Rc::clone(&doc)));
+    fn traverse_doc(&self, name: &str, doc: Rc<RefCell<Document>>) -> Component {
         let doc_ref = doc.borrow();
         let table = doc_ref.as_table();
         Component::Table(TableWrapper::new(Table {
