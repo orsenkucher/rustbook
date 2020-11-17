@@ -140,19 +140,12 @@ impl State {
     pub fn set_files(&mut self, value: &JsValue) {
         debug!("Received files");
         let files: HashMap<String, String> = value.into_serde().unwrap();
-        // add new files
-        // modify old files, not touching original value
-
         files.into_iter().for_each(|(key, value)| {
             self.files
                 .entry(key)
                 .and_modify(|entry| entry.modified = value.clone())
                 .or_insert_with(|| File::new(value));
         });
-        // self.files = files
-        //     .into_iter()
-        //     .map(|(key, value)| (key, File::new(value)))
-        //     .collect();
         debug!("files: {}", self.files.len());
     }
 
@@ -272,7 +265,7 @@ impl State {
         if let Some((name, doc)) = &self.document {
             let file = self.files.get_mut(name).unwrap();
             info!("Name: {}, Doc: {}", name, doc.borrow());
-            file.modified = format!("{}", doc.borrow());
+            file.modified = format!("{}", doc.borrow().to_string_in_original_order());
         }
     }
 }
@@ -520,12 +513,7 @@ impl File {
 
     #[wasm_bindgen(js_name = isModified)]
     pub fn is_modified(&self) -> bool {
-        if self.original != self.modified {
-            info!(
-                "Is Modified:\n{}\n*** ***\n{}",
-                self.original, self.modified
-            );
-        }
-        self.original != self.modified
+        let prep = |s: &str| s.replace("\r", "").replace("\n", "");
+        prep(&self.original) != prep(&self.modified)
     }
 }
