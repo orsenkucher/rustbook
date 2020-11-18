@@ -457,6 +457,14 @@ impl RowWrapper {
     pub fn modify_value(&mut self, value: &str) {
         self.0.borrow_mut().modify_value(value);
     }
+
+    pub fn original(&self) -> String {
+        self.0.borrow().original()
+    }
+
+    pub fn modified(&self) -> String {
+        self.0.borrow().modified()
+    }
 }
 
 #[wasm_bindgen]
@@ -484,6 +492,14 @@ impl Row {
     pub fn modify_value(&mut self, value: &str) {
         self.value.push(String::from(value));
         self.mutate_doc(value);
+    }
+
+    pub fn original(&self) -> String {
+        self.value.first().unwrap().clone()
+    }
+
+    pub fn modified(&self) -> String {
+        self.value.last().unwrap().clone()
     }
 
     fn mutate_doc(&self, value: &str) {
