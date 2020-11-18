@@ -2,7 +2,7 @@ mod mandelbrot;
 mod utils;
 
 use js_sys::Array;
-use log::{debug, info, Level};
+use log::{debug, info, warn, Level};
 use serde::{Deserialize, Serialize};
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 use toml_edit::{Decor, Document, TableKeyValue, Value};
@@ -111,6 +111,17 @@ pub struct State {
     document: Option<(String, Rc<RefCell<Document>>)>,
 }
 
+const DEFAULT: &str = r#"
+# This is head comment
+[data] # about data table
+# before name comment
+name = "spectrum" # config name
+# in-between comment
+author = "Orsen" # my name
+number = 137 # some number
+# tailing comment
+"#;
+
 #[wasm_bindgen]
 impl State {
     pub fn new() -> State {
@@ -119,9 +130,15 @@ impl State {
         component
             .1
             .insert(component.0.clone(), TableWrapper::new(Table::new()));
+        let files = vec![(
+            String::from("Default.toml"),
+            File::new(String::from(DEFAULT.trim())),
+        )]
+        .into_iter()
+        .collect();
         Self {
             logs: vec![String::from("Backend connected")],
-            files: HashMap::new(),
+            files,
             component,
             document: None,
         }
@@ -170,6 +187,10 @@ impl State {
     }
 
     pub fn component(&self) -> TableWrapper {
+        warn!(
+            "Retrieved: {:?}",
+            self.component.1[&self.component.0].clone()
+        );
         self.component.1[&self.component.0].clone()
     }
 
@@ -189,10 +210,11 @@ impl State {
 
         let vacant = self.component.1.get(&self.component.0).is_none();
         if vacant {
+            // info!("New vacant:{}", name);
             let doc = Rc::new(RefCell::new(doc));
             self.document = Some((String::from(name), Rc::clone(&doc)));
             let traversed = self.traverse_doc(name, doc);
-            info!("{:#?}", traversed);
+            // info!("{:#?}", traversed);
             self.component.1.insert(
                 self.component.0.clone(),
                 match traversed {
@@ -201,6 +223,7 @@ impl State {
                 },
             );
         } else {
+            // info!("Reuse cached:{}", name);
             let c = &self.component.1[&self.component.0];
             self.document = Some((String::from(name), Rc::clone(&c.0.borrow().doc)));
         }
@@ -465,6 +488,10 @@ impl RowWrapper {
     pub fn modified(&self) -> String {
         self.0.borrow().modified()
     }
+
+    pub fn path(&self) -> String {
+        self.0.borrow().path()
+    }
 }
 
 #[wasm_bindgen]
@@ -483,8 +510,8 @@ impl Row {
 
     #[wasm_bindgen(js_name=isModified)]
     pub fn is_modified(&self) -> bool {
-        info!("values: {:?}", self.value);
-        info!("res: {:?}", self.value.first() != self.value.last());
+        // info!("values: {:?}", self.value);
+        // info!("res: {:?}", self.value.first() != self.value.last());
         self.value.first() != self.value.last()
     }
 
@@ -500,6 +527,10 @@ impl Row {
 
     pub fn modified(&self) -> String {
         self.value.last().unwrap().clone()
+    }
+
+    pub fn path(&self) -> String {
+        self.path.iter().fold(String::new(), |acc, next| acc + next)
     }
 
     fn mutate_doc(&self, value: &str) {

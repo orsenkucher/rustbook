@@ -18,8 +18,8 @@ function Row({ component, setComponent }) {
       })()}
 
       <div>{component.key()}: {<input type="text" value={value} onChange={valueChange} />}
-        {component.isModified() ? (<div class="tooltip">⚙️
-          <span class="tooltiptext">{component.original()}<br />🡓<br />{component.modified()}</span>
+        {component.isModified() ? (<div className="tooltip">⚙️
+          <span className="tooltiptext">{component.original()}<br />🡓<br />{component.modified()}</span>
         </div>) : ""} {(() => {
           const footnote = component.annotation().footnote();
           if (footnote) return (<i>{footnote}</i>)

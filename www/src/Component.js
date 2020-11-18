@@ -10,7 +10,7 @@ function Component({ component, setComponent }) {
 
       if (t == 'row') {
         const row = iter.nextRow()
-        const rend = (<li key={row.key()}>
+        const rend = (<li key={row.path() + row.key()}>
           <Row component={row} setComponent={setComponent}></Row>
         </li>)
 
