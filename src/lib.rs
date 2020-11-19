@@ -2,7 +2,7 @@ mod mandelbrot;
 mod utils;
 
 use js_sys::Array;
-use log::{debug, info, warn, Level};
+use log::{debug, info, Level};
 use serde::{Deserialize, Serialize};
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 use toml_edit::{Decor, Document, TableKeyValue, Value};
@@ -103,7 +103,6 @@ pub fn main() {
 }
 
 #[wasm_bindgen]
-// #[derive(Serialize, Deserialize)]
 pub struct State {
     logs: Vec<String>,
     files: HashMap<String, File>,
@@ -187,10 +186,6 @@ impl State {
     }
 
     pub fn component(&self) -> TableWrapper {
-        warn!(
-            "Retrieved: {:?}",
-            self.component.1[&self.component.0].clone()
-        );
         self.component.1[&self.component.0].clone()
     }
 
@@ -210,11 +205,9 @@ impl State {
 
         let vacant = self.component.1.get(&self.component.0).is_none();
         if vacant {
-            // info!("New vacant:{}", name);
             let doc = Rc::new(RefCell::new(doc));
             self.document = Some((String::from(name), Rc::clone(&doc)));
             let traversed = self.traverse_doc(name, doc);
-            // info!("{:#?}", traversed);
             self.component.1.insert(
                 self.component.0.clone(),
                 match traversed {
@@ -223,7 +216,6 @@ impl State {
                 },
             );
         } else {
-            // info!("Reuse cached:{}", name);
             let c = &self.component.1[&self.component.0];
             self.document = Some((String::from(name), Rc::clone(&c.0.borrow().doc)));
         }
@@ -240,7 +232,7 @@ impl State {
             doc: Rc::clone(&doc),
             components: table
                 .iter_kv()
-                .map(|kv| Self::traverse_item(kv, vec![], Rc::clone(&doc)))
+                .map(|kv| Self::traverse_item(kv, vec![String::from(name)], Rc::clone(&doc)))
                 .collect(),
         }))
     }
@@ -293,14 +285,13 @@ impl State {
     }
 }
 
-//  Serialize, Deserialize,
 #[derive(Debug, Clone)]
 enum Component {
     Table(TableWrapper),
     Row(RowWrapper),
 }
 
-#[wasm_bindgen] //  Serialize, Deserialize,
+#[wasm_bindgen]
 #[derive(Debug, Default, Clone)]
 pub struct Annotation {
     headline: String,
@@ -336,7 +327,7 @@ impl From<(&Decor, &Decor)> for Annotation {
     }
 }
 
-#[wasm_bindgen] //  Serialize, Deserialize,
+#[wasm_bindgen]
 #[derive(Debug, Clone, Default)]
 pub struct Table {
     title: String,
@@ -435,7 +426,7 @@ impl ComponentIter {
     }
 }
 
-#[wasm_bindgen] // Serialize, Deserialize,
+#[wasm_bindgen]
 #[derive(Debug)]
 pub struct Row {
     key: String,
@@ -510,8 +501,6 @@ impl Row {
 
     #[wasm_bindgen(js_name=isModified)]
     pub fn is_modified(&self) -> bool {
-        // info!("values: {:?}", self.value);
-        // info!("res: {:?}", self.value.first() != self.value.last());
         self.value.first() != self.value.last()
     }
 
@@ -535,7 +524,7 @@ impl Row {
 
     fn mutate_doc(&self, value: &str) {
         let root = &mut self.doc.borrow_mut().root;
-        let row = self.path.iter().fold(root, |item, key| &mut item[key]);
+        let row = self.path[1..].iter().fold(root, |item, key| &mut item[key]);
         row.as_value_mut().unwrap().mutate(value.into());
     }
 }
