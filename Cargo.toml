@@ -17,6 +17,7 @@ serde = { version = "1.0.117", features = ["derive"] }
 plotters = "0.3.0"
 plotters-canvas = "0.3.0"
 
+toml = "0.5.7"
 toml_edit = { git = "https://github.com/orsenkucher/toml_edit" }
 
 js-sys = "0.3.45"

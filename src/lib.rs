@@ -194,6 +194,13 @@ impl State {
             self.log(err.to_string());
             err.to_string()
         })?;
+
+        let config = self.parse(name).map_err(|err| {
+            self.log(err.to_string());
+            err.to_string()
+        })?;
+        info!("{:#?}", config);
+
         Chart::mandelbrot(canvas)
     }
 
@@ -283,6 +290,22 @@ impl State {
             file.modified = format!("{}", doc.borrow().to_string_in_original_order());
         }
     }
+
+    fn parse(&self, name: &str) -> Result<Config, Box<dyn std::error::Error>> {
+        Ok(toml::from_str(&self.files[name].modified)?)
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct Config {
+    data: Data,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct Data {
+    name: String,
+    author: String,
+    number: i32,
 }
 
 #[derive(Debug, Clone)]
