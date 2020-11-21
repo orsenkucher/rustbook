@@ -8,6 +8,7 @@ function FileList(props) {
       modified[key] = value.modified()
     }
 
+    var delta = {}
     var updated = 0
     for (var i = 0; i < files.length; i++) {
       const file = files[i]
@@ -26,9 +27,11 @@ function FileList(props) {
       updated++
       console.log(`Added ${name}`)
       modified[name] = text
+      delta[name] = text
     }
     props.state.log(`Updated ${updated} files`)
-    props.state.setFiles(modified)
+    props.state.setFiles(delta)
+    props.setComponent()
     props.setLogs(props.state.logs())
   }
 

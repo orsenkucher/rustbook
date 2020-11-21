@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 
 function Row({ component, setComponent }) {
-  const [value, setValue] = useState(component.value());
+  const [_, setValue] = useState(component.value());
   const valueChange = (event) => {
     console.log(event.target.value)
     component.modifyValue(event.target.value)
@@ -9,7 +9,7 @@ function Row({ component, setComponent }) {
     setComponent()
   }
 
-  console.log('Component(Row) key', component.key())
+  // console.log('Component(Row) key', component.key())
   return (
     <div className="app-component-row">
       {(() => {
@@ -17,7 +17,7 @@ function Row({ component, setComponent }) {
         if (headline) return (<div><b><i>{headline}</i></b></div>)
       })()}
 
-      <div>{component.key()}: {<input type="text" value={value} onChange={valueChange} />}
+      <div>{component.key()}: {<input type="text" value={component.value()} onChange={valueChange} />}
         {component.isModified() ? (<div className="tooltip">⚙️
           <span className="tooltiptext">{component.original()}<br />🡓<br />{component.modified()}</span>
         </div>) : ""} {(() => {

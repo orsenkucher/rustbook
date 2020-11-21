@@ -156,13 +156,33 @@ impl State {
     pub fn set_files(&mut self, value: &JsValue) {
         debug!("Received files");
         let files: HashMap<String, String> = value.into_serde().unwrap();
+        let mut modified = Vec::new();
         files.into_iter().for_each(|(key, value)| {
             self.files
-                .entry(key)
-                .and_modify(|entry| entry.modified = value.clone())
+                .entry(key.clone())
+                .and_modify(|entry| {
+                    modified.push(key);
+                    entry.original = value.clone();
+                    entry.modified = value.clone();
+                })
                 .or_insert_with(|| File::new(value));
         });
+        self.purge_updated(modified);
         debug!("files: {}", self.files.len());
+    }
+
+    fn purge_updated(&mut self, keys: Vec<String>) {
+        for key in keys {
+            if self.component.1.get(&key).is_some() {
+                self.component.1.remove(&key);
+            }
+
+            if key == self.component.0 {
+                if let Err(err) = self.edit_config(&key) {
+                    self.log(err.to_string());
+                };
+            }
+        }
     }
 
     #[wasm_bindgen(js_name = modFile)]
@@ -250,7 +270,6 @@ impl State {
         doc: Rc<RefCell<Document>>,
     ) -> Component {
         path.push(String::from(title));
-
         match kv.value() {
             toml_edit::Item::Table(table) => Self::traverse_table(title, table, path, doc),
             toml_edit::Item::ArrayOfTables(tables) => {
@@ -293,7 +312,15 @@ impl State {
             annotation: Default::default(),
             components: tables
                 .iter()
-                .map(|table| Self::traverse_table(title, table, path.clone(), Rc::clone(&doc)))
+                .enumerate()
+                .map(|(idx, table)| {
+                    Self::traverse_table(
+                        &format!("{} [{}]", &title, idx),
+                        table,
+                        path.clone(),
+                        Rc::clone(&doc),
+                    )
+                })
                 .collect(),
         }))
     }

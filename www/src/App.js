@@ -36,6 +36,7 @@ const App = ({ title }) => {
             state.download(name)
             setLogs(state.logs())
           }}
+          setComponent={() => setComponent(state.component())}
         />
       </div>
       <div>
