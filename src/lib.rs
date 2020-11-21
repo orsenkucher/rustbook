@@ -219,7 +219,7 @@ impl State {
                 self.component.0.clone(),
                 match traversed {
                     Component::Table(t) => t,
-                    _ => panic!("root component is always a table"),
+                    _ => unreachable!("root component is always a table"),
                 },
             );
         } else {
@@ -250,37 +250,77 @@ impl State {
         doc: Rc<RefCell<Document>>,
     ) -> Component {
         path.push(String::from(title));
-        if let Some(table) = kv.value().as_table() {
-            let decor = &table.decor;
-            Component::Table(TableWrapper::new(Table {
-                title: String::from(title),
-                doc: Rc::clone(&doc),
-                annotation: decor.into(),
-                components: table
-                    .iter_kv()
-                    .map(|kv| Self::traverse_item(kv, path.clone(), Rc::clone(&doc)))
-                    .collect(),
-            }))
-        } else {
-            let value = kv.value().as_value().expect("Now item is value");
-            let decor = kv.decor().unwrap();
-            let value = match value {
-                Value::Integer(f) => f.value().to_string(),
-                Value::String(f) => f.value().to_string(),
-                Value::Float(f) => f.value().to_string(),
-                Value::DateTime(f) => f.value().to_string(),
-                Value::Boolean(f) => f.value().to_string(),
-                Value::Array(f) => f.to_string(),
-                Value::InlineTable(f) => f.to_string(),
-            };
-            Component::Row(RowWrapper::new(Row {
-                key: String::from(title),
-                value: vec![value],
-                doc,
-                path: path.clone(),
-                annotation: decor.into(),
-            }))
+
+        match kv.value() {
+            toml_edit::Item::Table(table) => Self::traverse_table(title, table, path, doc),
+            toml_edit::Item::ArrayOfTables(tables) => {
+                Self::traverse_array_of_tables(title, tables, path, doc)
+            }
+            toml_edit::Item::Value(value) => {
+                Self::traverse_value(title, value, kv.decor().unwrap(), path, doc)
+            }
+            _ => unreachable!("Traversing Item::None"),
         }
+    }
+
+    fn traverse_table(
+        title: &str,
+        table: &toml_edit::Table,
+        path: Vec<String>,
+        doc: Rc<RefCell<Document>>,
+    ) -> Component {
+        let decor = &table.decor;
+        Component::Table(TableWrapper::new(Table {
+            title: String::from(title),
+            doc: Rc::clone(&doc),
+            annotation: decor.into(),
+            components: table
+                .iter_kv()
+                .map(|kv| Self::traverse_item(kv, path.clone(), Rc::clone(&doc)))
+                .collect(),
+        }))
+    }
+
+    fn traverse_array_of_tables(
+        title: &str,
+        tables: &toml_edit::ArrayOfTables,
+        path: Vec<String>,
+        doc: Rc<RefCell<Document>>,
+    ) -> Component {
+        Component::Table(TableWrapper::new(Table {
+            title: String::from(title),
+            doc: Rc::clone(&doc),
+            annotation: Default::default(),
+            components: tables
+                .iter()
+                .map(|table| Self::traverse_table(title, table, path.clone(), Rc::clone(&doc)))
+                .collect(),
+        }))
+    }
+
+    fn traverse_value(
+        title: &str,
+        value: &toml_edit::Value,
+        decor: (&Decor, &Decor),
+        path: Vec<String>,
+        doc: Rc<RefCell<Document>>,
+    ) -> Component {
+        let value = match value {
+            Value::Integer(f) => f.value().to_string(),
+            Value::String(f) => f.value().to_string(),
+            Value::Float(f) => f.value().to_string(),
+            Value::DateTime(f) => f.value().to_string(),
+            Value::Boolean(f) => f.value().to_string(),
+            Value::Array(f) => f.to_string(),
+            Value::InlineTable(f) => f.to_string(),
+        };
+        Component::Row(RowWrapper::new(Row {
+            key: String::from(title),
+            value: vec![value],
+            doc,
+            path: path.clone(),
+            annotation: decor.into(),
+        }))
     }
 
     pub fn evaluate(&mut self) {
