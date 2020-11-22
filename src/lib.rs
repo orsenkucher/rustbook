@@ -253,13 +253,15 @@ impl State {
     fn traverse_doc(&self, name: &str, doc: Rc<RefCell<Document>>) -> Component {
         let doc_ref = doc.borrow();
         let table = doc_ref.as_table();
+        let path = vec![String::from(name)];
         Component::Table(TableWrapper::new(Table {
             annotation: Annotation::from(&table.decor),
             title: String::from(name),
             doc: Rc::clone(&doc),
+            path: path.clone(),
             components: table
                 .iter_kv()
-                .map(|kv| Self::traverse_item(kv, vec![String::from(name)], Rc::clone(&doc)))
+                .map(|kv| Self::traverse_item(kv, path.clone(), Rc::clone(&doc)))
                 .collect(),
         }))
     }
@@ -292,6 +294,7 @@ impl State {
         Component::Table(TableWrapper::new(Table {
             title: String::from(title),
             doc: Rc::clone(&doc),
+            path: path.clone(),
             annotation: decor.into(),
             components: table
                 .iter_kv()
@@ -309,6 +312,7 @@ impl State {
         Component::ArrayOfTables(TableWrapper::new(Table {
             title: String::from(title),
             doc: Rc::clone(&doc),
+            path: path.clone(),
             annotation: Default::default(),
             components: tables
                 .iter()
@@ -422,6 +426,7 @@ pub struct Table {
     title: String,
     annotation: Annotation,
     components: Vec<Component>,
+    path: Vec<String>,
     doc: Rc<RefCell<Document>>,
 }
 
@@ -446,6 +451,14 @@ impl TableWrapper {
     pub fn components(&self) -> ComponentIter {
         self.0.borrow().components()
     }
+
+    pub fn create(&mut self) {
+        self.0.borrow_mut().create()
+    }
+
+    // fn borrow_mut(&mut self, tail: String)->RefMut<'_, T>{
+    //     self.0.borrow_mut()
+    // }
 }
 
 impl Table {
@@ -469,6 +482,28 @@ impl Table {
 
     pub fn components(&self) -> ComponentIter {
         ComponentIter::new(&self.components)
+    }
+
+    pub fn create(&mut self) {
+        let component = self.components.last().unwrap().clone();
+        // TODO: proper cloning here (not just Rc::clone())
+        if let Component::Table(table) = &component {
+            if table.0.borrow_mut().path.pop().is_some() {
+                let next = self.components.len().to_string();
+                table.0.borrow_mut().title = next.clone();
+                table.0.borrow_mut().path.push(next);
+            }
+        }
+        self.components.push(component);
+
+        let root = &mut self.doc.borrow_mut().root;
+        let array = self.path[1..]
+            .iter()
+            .fold(root, |item, key| &mut item[key])
+            .as_array_of_tables_mut()
+            .unwrap();
+        let table = array.get(array.len() - 1).unwrap().clone();
+        array.append(table);
     }
 }
 

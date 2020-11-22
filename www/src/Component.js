@@ -1,7 +1,7 @@
 import React from 'react'
 import Row from './Row';
 
-function Component({ component, setComponent }) {
+function Component({ component, setComponent, holdsArray, onCreate }) {
   const componentsMap = (iter) => {
     console.log("Mapping")
     var res = []
@@ -17,8 +17,10 @@ function Component({ component, setComponent }) {
       } else if (t == 'table' || t == 'array') {
         const table = iter.nextTable()
         const rend = (<li key={table.title()}>
-          {(() => { if (t == 'array') return (<b>[+]</b>) })()}
-          <Component component={table} setComponent={setComponent}></Component>
+          <Component holdsArray={t == 'array'} onCreate={() => {
+            table.create();
+            setComponent();
+          }} component={table} setComponent={setComponent}></Component>
         </li>)
         res.push(rend)
       } else {
@@ -31,7 +33,12 @@ function Component({ component, setComponent }) {
   // console.log('Component(Table) title', component.title())
   return (
     <div className="app-component">
-      <div><b>{component.title()}</b></div>
+      <div>
+        <b>{component.title()}</b>
+        {" "}
+        {(() => { if (holdsArray) return (<button onClick={onCreate}>[ <b>create</b> ]</button>) })()}
+        <div style={{ height: "4px" }}></div>
+      </div>
 
       {(() => {
         const headline = component.annotation().headline();
