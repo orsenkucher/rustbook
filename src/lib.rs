@@ -314,12 +314,10 @@ impl State {
                 .iter()
                 .enumerate()
                 .map(|(idx, table)| {
-                    Self::traverse_table(
-                        &format!("{} [{}]", &title, idx),
-                        table,
-                        path.clone(),
-                        Rc::clone(&doc),
-                    )
+                    let mut path = path.clone();
+                    let index = format!("{}", idx);
+                    path.push(index.clone());
+                    Self::traverse_table(&index, table, path, Rc::clone(&doc))
                 })
                 .collect(),
         }))
