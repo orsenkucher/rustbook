@@ -5,7 +5,7 @@ use js_sys::Array;
 use log::{debug, info, Level};
 use serde::{Deserialize, Serialize};
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
-use toml_edit::{Decor, Document, TableKeyValue, Value};
+use toml_edit::{Decor, Document, TableKeyValue};
 use wasm_bindgen::{prelude::*, JsCast};
 use web_sys::HtmlCanvasElement;
 
@@ -331,13 +331,13 @@ impl State {
         doc: Rc<RefCell<Document>>,
     ) -> Component {
         let value = match value {
-            Value::Integer(f) => f.value().to_string(),
-            Value::String(f) => f.value().to_string(),
-            Value::Float(f) => f.value().to_string(),
-            Value::DateTime(f) => f.value().to_string(),
-            Value::Boolean(f) => f.value().to_string(),
-            Value::Array(f) => f.to_string(),
-            Value::InlineTable(f) => f.to_string(),
+            toml_edit::Value::Float(f) => Value::Float(*f.value()),
+            toml_edit::Value::Integer(f) => Value::Integer(*f.value()),
+            toml_edit::Value::Boolean(f) => Value::Boolean(*f.value()),
+            toml_edit::Value::String(f) => Value::String(f.value().clone()),
+            toml_edit::Value::DateTime(f) => Value::String(f.value().to_string()),
+            toml_edit::Value::InlineTable(f) => Value::String(f.to_string()),
+            toml_edit::Value::Array(f) => Value::String(f.to_string()),
         };
         Component::Row(RowWrapper::new(Row {
             key: String::from(title),
@@ -520,10 +520,40 @@ impl ComponentIter {
 #[derive(Debug)]
 pub struct Row {
     key: String,
-    value: Vec<String>,
+    value: Vec<Value>,
     annotation: Annotation,
     path: Vec<String>,
     doc: Rc<RefCell<Document>>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+enum Value {
+    Float(f64),
+    Integer(i64),
+    Boolean(bool),
+    String(String),
+}
+
+impl std::fmt::Display for Value {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Value::Integer(v) => write!(f, "{}", v),
+            Value::String(v) => write!(f, "{}", v),
+            Value::Float(v) => write!(f, "{}", v),
+            Value::Boolean(v) => write!(f, "{}", v),
+        }
+    }
+}
+
+impl Value {
+    fn into(self) -> toml_edit::Value {
+        match self {
+            Value::Integer(v) => v.into(),
+            Value::String(v) => v.into(),
+            Value::Float(v) => v.into(),
+            Value::Boolean(v) => v.into(),
+        }
+    }
 }
 
 #[wasm_bindgen]
@@ -582,7 +612,7 @@ impl Row {
     }
 
     pub fn value(&self) -> String {
-        self.value.last().unwrap().clone()
+        self.modified()
     }
 
     pub fn annotation(&self) -> Annotation {
@@ -596,23 +626,52 @@ impl Row {
 
     #[wasm_bindgen(js_name=modifyValue)]
     pub fn modify_value(&mut self, value: &str) {
-        self.value.push(String::from(value));
-        self.mutate_doc(value);
+        let value = match self.value.first() {
+            Some(Value::Float(_)) => value
+                .parse::<f64>()
+                .map_err(|err| err.to_string())
+                .and_then(|val| {
+                    let v = Value::Float(val);
+                    if v.to_string() != value {
+                        self.value.push(Value::String(String::from(value)));
+                        return Err(String::from("Partial float parsing"));
+                    }
+                    Ok(v)
+                }),
+            Some(Value::Integer(_)) => value
+                .parse()
+                .map(|val| Value::Integer(val))
+                .map_err(|err| err.to_string()),
+            Some(Value::Boolean(_)) => value
+                .parse()
+                .map(|val| Value::Boolean(val))
+                .map_err(|err| err.to_string()),
+            Some(Value::String(_)) => Ok(Value::String(String::from(value))),
+            None => unreachable!("At least one value is always present"),
+        };
+
+        match value {
+            Ok(value) => {
+                self.value.push(value.clone());
+                self.mutate_doc(value);
+            }
+            Err(err) => log::warn!("Editing error: {}", err),
+        }
     }
 
     pub fn original(&self) -> String {
-        self.value.first().unwrap().clone()
+        self.value.first().unwrap().to_string()
     }
 
     pub fn modified(&self) -> String {
-        self.value.last().unwrap().clone()
+        self.value.last().unwrap().to_string()
     }
 
     pub fn path(&self) -> String {
         self.path.iter().fold(String::new(), |acc, next| acc + next)
     }
 
-    fn mutate_doc(&self, value: &str) {
+    fn mutate_doc(&self, value: Value) {
         let root = &mut self.doc.borrow_mut().root;
         let row = self.path[1..].iter().fold(root, |item, key| &mut item[key]);
         row.as_value_mut().unwrap().mutate(value.into());
