@@ -278,7 +278,7 @@ impl State {
             toml_edit::Item::Value(value) => {
                 Self::traverse_value(title, value, kv.decor().unwrap(), path, doc)
             }
-            _ => unreachable!("Traversing Item::None"),
+            toml_edit::Item::None => unreachable!("Traversing Item::None"),
         }
     }
 
@@ -306,7 +306,7 @@ impl State {
         path: Vec<String>,
         doc: Rc<RefCell<Document>>,
     ) -> Component {
-        Component::Table(TableWrapper::new(Table {
+        Component::ArrayOfTables(TableWrapper::new(Table {
             title: String::from(title),
             doc: Rc::clone(&doc),
             annotation: Default::default(),
@@ -377,8 +377,9 @@ struct Data {
 
 #[derive(Debug, Clone)]
 enum Component {
-    Table(TableWrapper),
     Row(RowWrapper),
+    Table(TableWrapper),
+    ArrayOfTables(TableWrapper),
 }
 
 #[wasm_bindgen]
@@ -494,15 +495,16 @@ impl ComponentIter {
     pub fn next(&mut self) -> Option<String> {
         self.item = self.iter.next();
         self.item.as_ref().map(|it| match it {
-            Component::Table(_) => String::from("table"),
             Component::Row(_) => String::from("row"),
+            Component::Table(_) => String::from("table"),
+            Component::ArrayOfTables(_) => String::from("array"),
         })
     }
 
     #[wasm_bindgen(js_name = nextTable)]
     pub fn next_table(&self) -> Option<TableWrapper> {
         match &self.item {
-            Some(Component::Table(t)) => Some(t.clone()),
+            Some(Component::Table(t)) | Some(Component::ArrayOfTables(t)) => Some(t.clone()),
             _ => None,
         }
     }

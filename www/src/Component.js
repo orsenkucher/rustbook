@@ -13,11 +13,11 @@ function Component({ component, setComponent }) {
         const rend = (<li key={row.path() + row.key()}>
           <Row component={row} setComponent={setComponent}></Row>
         </li>)
-
         res.push(rend)
-      } else if (t == 'table') {
+      } else if (t == 'table' || t == 'array') {
         const table = iter.nextTable()
         const rend = (<li key={table.title()}>
+          {(() => { if (t == 'array') return (<b>[+]</b>) })()}
           <Component component={table} setComponent={setComponent}></Component>
         </li>)
         res.push(rend)
@@ -28,7 +28,7 @@ function Component({ component, setComponent }) {
     return res
   }
 
-  console.log('Component(Table) title', component.title())
+  // console.log('Component(Table) title', component.title())
   return (
     <div className="app-component">
       <div><b>{component.title()}</b></div>
