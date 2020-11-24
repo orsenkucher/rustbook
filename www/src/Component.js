@@ -1,7 +1,7 @@
 import React from 'react'
 import Row from './Row';
 
-function Component({ component, setComponent, holdsArray, onCreate }) {
+function Component({ component, setComponent, holdsArray, onCreate, onRemove }) {
   const componentsMap = (iter) => {
     console.log("Mapping")
     var res = []
@@ -17,10 +17,19 @@ function Component({ component, setComponent, holdsArray, onCreate }) {
       } else if (t == 'table' || t == 'array') {
         const table = iter.nextTable()
         const rend = (<li key={table.title()}>
-          <Component holdsArray={t == 'array'} onCreate={() => {
-            table.create();
-            setComponent();
-          }} component={table} setComponent={setComponent}></Component>
+          <Component
+            holdsArray={t == 'array'}
+            component={table}
+            onCreate={() => {
+              table.create();
+              setComponent();
+            }}
+            onRemove={() => {
+              table.remove();
+              setComponent();
+            }}
+            setComponent={setComponent}
+          ></Component>
         </li>)
         res.push(rend)
       } else {
@@ -37,6 +46,7 @@ function Component({ component, setComponent, holdsArray, onCreate }) {
         <b>{component.title()}</b>
         {" "}
         {(() => { if (holdsArray) return (<button onClick={onCreate}>[ <b>create</b> ]</button>) })()}
+        {(() => { if (holdsArray) return (<button onClick={onRemove}>[ <b>remove</b> ]</button>) })()}
         <div style={{ height: "4px" }}></div>
       </div>
 

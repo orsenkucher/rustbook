@@ -456,9 +456,9 @@ impl TableWrapper {
         self.0.borrow_mut().create()
     }
 
-    // fn borrow_mut(&mut self, tail: String)->RefMut<'_, T>{
-    //     self.0.borrow_mut()
-    // }
+    pub fn remove(&mut self) {
+        self.0.borrow_mut().remove()
+    }
 }
 
 impl Table {
@@ -485,15 +485,14 @@ impl Table {
     }
 
     pub fn create(&mut self) {
-        self.create_component();
         self.create_in_doc();
+        self.create_component();
     }
 
     fn create_component(&mut self) {
         let next = self.components.len().to_string();
         let mut path = self.path.clone();
         path.push(next.clone());
-        log::warn!("CURRENT PATH {:?}", path);
 
         let component = self.components.last().unwrap().deep_clone(path, true);
 
@@ -504,7 +503,7 @@ impl Table {
         self.components.push(component);
     }
 
-    fn create_in_doc(&mut self) {
+    fn create_in_doc(&self) {
         let root = &mut self.doc.borrow_mut().root;
         let array = self.path[1..]
             .iter()
@@ -520,7 +519,7 @@ impl Table {
         if !path_handled {
             path.push(self.title.clone());
         }
-        log::warn!("TABLE PATH: {:?}", path);
+
         Self {
             annotation: Default::default(),
             path: path.clone(),
@@ -530,6 +529,30 @@ impl Table {
                 .map(|component| component.deep_clone(path.clone(), false))
                 .collect(),
             ..self.clone()
+        }
+    }
+
+    pub fn remove(&mut self) {
+        self.remove_component();
+        self.remove_in_doc();
+    }
+
+    fn remove_component(&mut self) {
+        if self.components.len() > 1 {
+            self.components.pop();
+        }
+    }
+
+    fn remove_in_doc(&self) {
+        let root = &mut self.doc.borrow_mut().root;
+        let array = self.path[1..]
+            .iter()
+            .fold(root, |item, key| &mut item[key])
+            .as_array_of_tables_mut()
+            .unwrap();
+        let len = array.len();
+        if len > 1 {
+            array.remove(len - 1);
         }
     }
 }
@@ -757,22 +780,31 @@ impl Row {
         row.as_value_mut().unwrap().mutate(value.into());
     }
 
+    fn mutate_doc_without_decor(&self, value: Value) {
+        let root = &mut self.doc.borrow_mut().root;
+        let row = self.path[1..].iter().fold(root, |item, key| &mut item[key]);
+        row.as_value_mut()
+            .unwrap()
+            .mutate_without_decor(value.into());
+    }
+
     fn deep_clone(&self, path: Vec<String>) -> Row {
         let mut path = path.clone();
         path.push(self.key.clone());
-        log::warn!("ROW PATH: {:?}", path);
         let default_value = match self.value.first().expect("One value is always present") {
             Value::Float(_) => Value::Float(0.0),
             Value::Integer(_) => Value::Integer(0),
             Value::Boolean(_) => Value::Boolean(false),
             Value::String(_) => Value::String(String::new()),
         };
-        Self {
+        let cloned = Self {
             annotation: Default::default(),
-            value: vec![default_value],
+            value: vec![default_value.clone()],
             path,
             ..self.clone()
-        }
+        };
+        cloned.mutate_doc_without_decor(default_value);
+        cloned
     }
 }
 
