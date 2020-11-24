@@ -111,14 +111,39 @@ pub struct State {
 }
 
 const DEFAULT: &str = r#"
-# This is head comment
-[data] # about data table
-# before name comment
-name = "spectrum" # config name
-# in-between comment
-author = "Orsen" # my name
-number = 137 # some number
-# tailing comment
+# Перша лінія спектру
+[[lines]]
+name = "Line 1" # Назва лінії
+energy = 1.5 # Її енергія
+intensity = 500 # Інтенсивність
+FWHM = 0.02 # Повна ширина но половині висоти   
+
+# Друга лінія спектру
+[[lines]]
+name = "Line 2"
+energy = 6
+intensity = 1000
+FWHM = 0.04
+
+# Третя лінія спектру
+[[lines]]
+name = "Line 3"
+energy = 8
+intensity = 5000
+FWHM = 0.1
+
+# Фон
+[background]
+E1 = 1000
+E2 = 4
+A = -100
+B = 800
+
+# Енергетичний діапазон 
+[range] # (від 0 до Emax)
+Emax = 10 # Максимальна енергія 
+Emin = 0 # Початковий зсув
+chan_number = 800 # Кількість каналів спектру
 "#;
 
 #[wasm_bindgen]
@@ -367,14 +392,45 @@ impl State {
 
 #[derive(Serialize, Deserialize, Debug)]
 struct Config {
-    data: Data,
+    lines: Vec<Line>,
+    background: Background,
+    range: Range,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-struct Data {
+struct Line {
     name: String,
-    author: String,
-    number: i32,
+    energy: f64,
+    intensity: i32,
+
+    #[serde(alias = "FWHM")]
+    fwhm: f64,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct Background {
+    #[serde(alias = "E1")]
+    e1: i32,
+
+    #[serde(alias = "E2")]
+    e2: i32,
+
+    #[serde(alias = "A")]
+    a: i32,
+
+    #[serde(alias = "B")]
+    b: i32,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct Range {
+    #[serde(alias = "Emax")]
+    emax: f64,
+
+    #[serde(alias = "Emin")]
+    emin: f64,
+
+    chan_number: i32,
 }
 
 #[derive(Debug, Clone)]

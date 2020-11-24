@@ -46,6 +46,7 @@ function Component({ component, setComponent, holdsArray, onCreate, onRemove }) 
         <b>{component.title()}</b>
         {" "}
         {(() => { if (holdsArray) return (<button onClick={onCreate}>[ <b>create</b> ]</button>) })()}
+        {" "}
         {(() => { if (holdsArray) return (<button onClick={onRemove}>[ <b>remove</b> ]</button>) })()}
         <div style={{ height: "4px" }}></div>
       </div>
