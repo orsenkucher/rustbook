@@ -702,6 +702,10 @@ impl Row {
 
     #[wasm_bindgen(js_name=modifyValue)]
     pub fn modify_value(&mut self, value: &str) {
+        if value.is_empty() {
+            return self.value.push(Value::String(String::new()));
+        }
+
         let value = match self.value.first() {
             Some(Value::Float(_)) => value
                 .parse::<f64>()
