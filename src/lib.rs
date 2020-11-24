@@ -1,4 +1,5 @@
 mod mandelbrot;
+mod spectrum;
 mod utils;
 
 use js_sys::Array;
@@ -83,6 +84,13 @@ impl Chart {
     /// Return `Chart` struct suitable for coordinate conversion.
     pub fn mandelbrot(canvas: HtmlCanvasElement) -> Result<Chart, JsValue> {
         let map_coord = mandelbrot::draw(canvas).map_err(|err| err.to_string())?;
+        Ok(Chart {
+            convert: Box::new(map_coord),
+        })
+    }
+
+    fn spectrum(canvas: HtmlCanvasElement, config: Config) -> Result<Chart, JsValue> {
+        let map_coord = spectrum::draw(canvas, config).map_err(|err| err.to_string())?;
         Ok(Chart {
             convert: Box::new(map_coord),
         })
@@ -246,7 +254,14 @@ impl State {
         })?;
         info!("{:#?}", config);
 
-        Chart::mandelbrot(canvas)
+        Chart::spectrum(canvas, config)
+    }
+
+    pub fn rerender(&mut self, canvas: HtmlCanvasElement) -> Result<Chart, JsValue> {
+        let name = &self.document.as_ref().unwrap().0.clone();
+        self.handle(canvas, name)
+        // let config = self.parse(name).map_err(|err| err.to_string())?;
+        // Chart::spectrum(canvas, config)
     }
 
     fn edit_config(&mut self, name: &str) -> Result<(), Box<dyn std::error::Error>> {
@@ -380,7 +395,7 @@ impl State {
     pub fn evaluate(&mut self) {
         if let Some((name, doc)) = &self.document {
             let file = self.files.get_mut(name).unwrap();
-            info!("Name: {}, Doc: {}", name, doc.borrow());
+            // info!("Name: {}, Doc: {}", name, doc.borrow());
             file.modified = format!("{}", doc.borrow().to_string_in_original_order());
         }
     }

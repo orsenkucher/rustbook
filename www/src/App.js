@@ -46,6 +46,11 @@ const App = ({ title }) => {
         <div>Fields editor</div>
         <Component component={component} setComponent={() => {
           state.evaluate()
+          try {
+            console.log("rerender in")
+            state.rerender(canvas.current)
+            console.log("rerender out")
+          } catch { }
           setLogs(state.logs())
           setComponent(state.component())
         }}></Component>
