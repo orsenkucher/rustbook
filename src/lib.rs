@@ -485,25 +485,66 @@ impl Table {
     }
 
     pub fn create(&mut self) {
-        let component = self.components.last().unwrap().clone();
-        // TODO: proper cloning here (not just Rc::clone())
-        if let Component::Table(table) = &component {
-            if table.0.borrow_mut().path.pop().is_some() {
-                let next = self.components.len().to_string();
-                table.0.borrow_mut().title = next.clone();
-                table.0.borrow_mut().path.push(next);
-            }
-        }
-        self.components.push(component);
+        self.create_component();
+        self.create_in_doc();
+    }
 
+    fn create_component(&mut self) {
+        let next = self.components.len().to_string();
+        let mut path = self.path.clone();
+        path.push(next.clone());
+        log::warn!("CURRENT PATH {:?}", path);
+
+        let component = self.components.last().unwrap().deep_clone(path, true);
+
+        if let Component::Table(table) = &component {
+            table.0.borrow_mut().title = next;
+        }
+
+        self.components.push(component);
+    }
+
+    fn create_in_doc(&mut self) {
         let root = &mut self.doc.borrow_mut().root;
         let array = self.path[1..]
             .iter()
             .fold(root, |item, key| &mut item[key])
             .as_array_of_tables_mut()
             .unwrap();
-        let table = array.get(array.len() - 1).unwrap().clone();
+        let mut table = array.get(array.len() - 1).unwrap().clone();
+        table.decor = Decor::new("\n", "");
         array.append(table);
+    }
+
+    fn deep_clone(&self, mut path: Vec<String>, path_handled: bool) -> Table {
+        if !path_handled {
+            path.push(self.title.clone());
+        }
+        log::warn!("TABLE PATH: {:?}", path);
+        Self {
+            annotation: Default::default(),
+            path: path.clone(),
+            components: self
+                .components
+                .iter()
+                .map(|component| component.deep_clone(path.clone(), false))
+                .collect(),
+            ..self.clone()
+        }
+    }
+}
+
+impl Component {
+    fn deep_clone(&self, path: Vec<String>, path_handled: bool) -> Component {
+        match self {
+            Component::Table(table) => Component::Table(TableWrapper::new(
+                table.0.borrow().deep_clone(path, path_handled),
+            )),
+            Component::ArrayOfTables(array) => Component::ArrayOfTables(TableWrapper::new(
+                array.0.borrow().deep_clone(path, path_handled),
+            )),
+            Component::Row(row) => Component::Row(RowWrapper::new(row.0.borrow().deep_clone(path))),
+        }
     }
 }
 
@@ -552,7 +593,7 @@ impl ComponentIter {
 }
 
 #[wasm_bindgen]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Row {
     key: String,
     value: Vec<Value>,
@@ -710,6 +751,24 @@ impl Row {
         let root = &mut self.doc.borrow_mut().root;
         let row = self.path[1..].iter().fold(root, |item, key| &mut item[key]);
         row.as_value_mut().unwrap().mutate(value.into());
+    }
+
+    fn deep_clone(&self, path: Vec<String>) -> Row {
+        let mut path = path.clone();
+        path.push(self.key.clone());
+        log::warn!("ROW PATH: {:?}", path);
+        let default_value = match self.value.first().expect("One value is always present") {
+            Value::Float(_) => Value::Float(0.0),
+            Value::Integer(_) => Value::Integer(0),
+            Value::Boolean(_) => Value::Boolean(false),
+            Value::String(_) => Value::String(String::new()),
+        };
+        Self {
+            annotation: Default::default(),
+            value: vec![default_value],
+            path,
+            ..self.clone()
+        }
     }
 }
 
