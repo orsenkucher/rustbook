@@ -129,14 +129,14 @@ FWHM = 0.02 # Повна ширина но половині висоти
 # Друга лінія спектру
 [[lines]]
 name = "Line 2"
-energy = 6
+energy = 6.0
 intensity = 1000
 FWHM = 0.04
 
 # Третя лінія спектру
 [[lines]]
 name = "Line 3"
-energy = 8
+energy = 8.0
 intensity = 5000
 FWHM = 0.1
 
@@ -797,7 +797,11 @@ impl Row {
     #[wasm_bindgen(js_name=modifyValue)]
     pub fn modify_value(&mut self, value: &str) {
         if value.is_empty() {
-            return self.value.push(Value::String(String::new()));
+            let empty = Value::String(String::new());
+            if let Some(Value::String(_)) = self.value.first() {
+                self.mutate_doc(empty.clone());
+            }
+            return self.value.push(empty);
         }
 
         let value = match self.value.first() {
