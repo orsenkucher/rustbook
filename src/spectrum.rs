@@ -13,11 +13,13 @@ pub(crate) fn draw(
     element: HtmlCanvasElement,
     config: Config,
 ) -> DrawResult<impl Fn((i32, i32)) -> Option<(f64, f64)>> {
+    log::warn!("rr: got plot backend");
     let backend = CanvasBackend::with_canvas_object(element).unwrap();
 
     let root = backend.into_drawing_area();
     root.fill(&WHITE)?;
 
+    log::warn!("rr: making ranges");
     let x_rng = range(&config.lines, |ln| ln.energy);
     let y_rng = range(&config.lines, |ln| ln.intensity as f64);
 
@@ -31,18 +33,21 @@ pub(crate) fn draw(
         .y_label_area_size(10)
         .build_cartesian_2d(x_rng, y_rng)?;
 
-    chart
-        .configure_mesh()
-        .disable_x_mesh()
-        .disable_y_mesh()
-        .axis_desc_style(("sans-serif", 24))
-        .label_style(("sans-serif", 24))
-        .x_label_formatter(&|x| format!("{:.0}", *x))
-        .x_desc("Energy")
-        .y_label_formatter(&|y| format!("{:.0}", *y))
-        .y_desc("Intensity")
-        .draw()?;
+    log::warn!("rr: charting");
+    // // bug here?
+    // chart
+    //     .configure_mesh()
+    //     .disable_x_mesh()
+    //     .disable_y_mesh()
+    //     .axis_desc_style(("sans-serif", 24))
+    //     .label_style(("sans-serif", 24))
+    //     .x_label_formatter(&|x| format!("{:.0}", *x))
+    //     .x_desc("Energy")
+    //     .y_label_formatter(&|y| format!("{:.0}", *y))
+    //     .y_desc("Intensity")
+    //     .draw()?;
 
+    log::warn!("rr: lining");
     config.lines.iter().for_each(|line| {
         chart
             .draw_series(LineSeries::new(
@@ -65,6 +70,7 @@ pub(crate) fn draw(
     //     .label("Lines")
     //     .legend(|(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], &RED));
 
+    log::warn!("rr: finishing");
     chart
         .configure_series_labels()
         .label_font(("sans-serif", 24))
