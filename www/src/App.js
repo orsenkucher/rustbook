@@ -12,6 +12,7 @@ const state = State.new()
 const App = ({ title }) => {
   const [logs, setLogs] = useState(state.logs());
   const [component, setComponent] = useState(state.component());
+  const [config, setConfig] = useState('{}');
 
   useEffect(() => {
     document.title = `Spectrum: ${[...state.files()].length} open`;
@@ -26,7 +27,7 @@ const App = ({ title }) => {
           onClick={name => {
             state.log(`Plotting ${name}`)
             try {
-              state.handle(canvas.current, name)
+              setConfig(state.handle(canvas.current, name))
             } catch { }
             setComponent(state.component())
             console.log('App title', state.component().title())
@@ -42,7 +43,7 @@ const App = ({ title }) => {
       </div>
       <div>
         {/* <Canvas ref={canvas} height={800} width={800} /> */}
-        <Plot height={800} width={800} config={{ id: '1234' }} />
+        <Plot height={800} width={800} config={config} />
       </div>
       <div className="app-fields">
         <div>Fields editor</div>
@@ -50,7 +51,7 @@ const App = ({ title }) => {
           state.evaluate()
           try {
             console.log("rerender in")
-            state.rerender(canvas.current)
+            setConfig(state.rerender(canvas.current))
             console.log("rerender out")
           } catch { }
           setLogs(state.logs())

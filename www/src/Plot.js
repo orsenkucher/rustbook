@@ -11,7 +11,8 @@ const Plot = ({ width, height, config }) => {
         var res = await fetch('http://localhost:5000/plot', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(config)
+          // body: JSON.stringify(config)
+          body: config
         });
 
         imageBlob = await res.blob();
@@ -29,7 +30,7 @@ const Plot = ({ width, height, config }) => {
     }
 
     getImages()
-  }, imageIds)
+  }, [config])
 
   return <img
     src={images[0]}

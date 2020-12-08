@@ -242,7 +242,7 @@ impl State {
         self.component.1[&self.component.0].clone()
     }
 
-    pub fn handle(&mut self, canvas: HtmlCanvasElement, name: &str) -> Result<Chart, JsValue> {
+    pub fn handle(&mut self, _canvas: HtmlCanvasElement, name: &str) -> Result<String, JsValue> {
         self.edit_config(name).map_err(|err| {
             self.log(err.to_string());
             err.to_string()
@@ -253,11 +253,14 @@ impl State {
             err.to_string()
         })?;
         info!("{:#?}", config);
-
-        Chart::spectrum(canvas, config)
+        serde_json::to_string(&config).map_err(|err| {
+            self.log(err.to_string());
+            err.to_string().into()
+        })
+        // Chart::spectrum(canvas, config)
     }
 
-    pub fn rerender(&mut self, canvas: HtmlCanvasElement) -> Result<Chart, JsValue> {
+    pub fn rerender(&mut self, canvas: HtmlCanvasElement) -> Result<String, JsValue> {
         let name = &self.document.as_ref().unwrap().0.clone();
         self.handle(canvas, name)
         // let config = self.parse(name).map_err(|err| err.to_string())?;
