@@ -1,6 +1,7 @@
 from flask import Flask, Response, send_file, request
 import io
 import random
+import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from flask_cors import CORS, cross_origin
@@ -8,12 +9,13 @@ from flask_cors import CORS, cross_origin
 app = Flask(__name__)
 cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
+plt.style.use('bmh')
 
-@app.route('/plot', methods=['GET', 'POST'])
+@app.route('/plot/<index>', methods=['GET', 'POST'])
 @cross_origin()
-def plot():
+def plot(index):
     config = request.json
-    fig = empty_figure()
+    fig = Figure()
     if config:
       fig = create_figure(config)
     output = io.BytesIO()
@@ -26,7 +28,5 @@ def create_figure(config):
     xs = range(100)
     ys = [random.randint(1, 50) for x in xs]
     axis.plot(xs, ys)
+    fig.tight_layout()
     return fig
-
-def empty_figure():
-   return Figure(figsize=(1,1), dpi=40)

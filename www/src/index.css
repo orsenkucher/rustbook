@@ -105,3 +105,9 @@ input {
 .tooltip:hover .tooltiptext {
   visibility: visible;
 }
+
+.back-button{
+  margin: 8px;
+  position: absolute;
+  z-index: 1;
+}
