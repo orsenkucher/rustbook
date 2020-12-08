@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Canvas from './Canvas';
+import Plot from './Plot';
 import FileList from './FileList';
 import Logs from './Logs';
 import { State } from "spectrum";
@@ -40,7 +41,8 @@ const App = ({ title }) => {
         />
       </div>
       <div>
-        <Canvas ref={canvas} height={800} width={800} />
+        {/* <Canvas ref={canvas} height={800} width={800} /> */}
+        <Plot height={800} width={800} config={{ id: '1234' }} />
       </div>
       <div className="app-fields">
         <div>Fields editor</div>

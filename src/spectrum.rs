@@ -1,6 +1,9 @@
 use crate::{Config, DrawResult, Line};
 use plotters::prelude::*;
 use plotters_canvas::CanvasBackend;
+// use rand::SeedableRng;
+// use rand_distr::{Distribution, Normal};
+// use rand_xorshift::XorShiftRng;
 use web_sys::HtmlCanvasElement;
 
 fn range<S: Fn(&Line) -> B, B: PartialOrd>(lines: &Vec<Line>, selector: S) -> (B, B) {
@@ -68,7 +71,36 @@ pub(crate) fn draw(
             .unwrap()
             .label(line.name.clone())
             .legend(move |(x, y)| PathElement::new(vec![(x, y), (x + 20, y)], &color(&idx)));
+
+        //   chart
     });
+
+    // let sd = 0.23;
+    // let random_points: Vec<(f64, f64)> = {
+    //     let norm_dist = Normal::new(5.0, sd).unwrap();
+    //     // let mut x_rand = XorShiftRng::from_seed(*b"MyFragileSeed123");
+    //     // let mut y_rand = XorShiftRng::from_seed(*b"MyFragileSeed321");
+    //     // let x_iter = norm_dist.sample_iter(&mut x_rand);
+    //     // let y_iter = norm_dist.sample_iter(&mut y_rand);
+    //     norm_dist.sample(&mut rand::thread_rng());
+    //     let x_iter = (0..config.range.chan_number)
+    //         .into_iter()
+    //         .map(|_| {
+    //             (
+    //                 norm_dist.sample(&mut rand::thread_rng()),
+    //                 norm_dist.sample(&mut rand::thread_rng()),
+    //             )
+    //         })
+    //         .collect();
+    //     // x_iter.zip(y_iter.map(|y| y * 100.0)).take(5000).collect()
+    //     x_iter
+    // };
+
+    // chart.draw_series(
+    //     random_points
+    //         .iter()
+    //         .map(|(x, y)| Circle::new((*x, *y), 2, BLUE.filled())),
+    // )?;
 
     // chart
     //     .draw_series(LineSeries::new(
