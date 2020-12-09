@@ -48,13 +48,16 @@ def create_figure(config, index):
         axis.set_xlim([state.ranges['emin'] *
                        state.ranges['chans'] /
                        state.ranges['emax'], state.ranges['chans']])
-        axis.plot(state.plot3[0], state.plot3[1], ',')
+        axis.scatter(state.plot3[0], state.plot3[1], s=2)
     if index == 3:
         axis.set_xlim([state.ranges['emin'] *
                        state.ranges['chans'] /
                        state.ranges['emax'], state.ranges['chans']])
-        axis.plot(state.plot4[0], state.plot4[1], ',')
+        axis.scatter(state.plot4[0], state.plot4[1], s=2)
     # fig.tight_layout()
+    axis.set(xlabel='Channels', ylabel='Intensity',
+             title='')
+    # axis.grid()
     return fig
 
 
@@ -70,8 +73,8 @@ class State():
         for line in config['lines']:
             self.lines.append({
                 'I': float(line['intensity']),
-                'E': float(line['energy']) * 1e3,
-                'FWHM': float(line['fwhm']) * 1e3
+                'E': float(line['energy']),  # * 1e3,
+                'FWHM': float(line['fwhm'])  # * 1e3
             })
 
         self.lines.sort(key=operator.itemgetter('E'))
@@ -81,8 +84,8 @@ class State():
         self.background['e1'] = float(config['background']['e1'])
         self.background['e2'] = float(config['background']['e2'])
 
-        self.ranges['emax'] = float(config['range']['emax']) * 1e3
-        self.ranges['emin'] = float(config['range']['emin']) * 1e3
+        self.ranges['emax'] = float(config['range']['emax'])  # * 1e3
+        self.ranges['emin'] = float(config['range']['emin'])  # * 1e3
         self.ranges['chans'] = float(config['range']['chan_number'])
 
         self.xs = np.linspace(1,
