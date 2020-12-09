@@ -123,35 +123,35 @@ const DEFAULT: &str = r#"
 [[lines]]
 name = "Line 1" # Назва лінії
 energy = 1.5 # Її енергія
-intensity = 500 # Інтенсивність
-FWHM = 0.02 # Повна ширина но половині висоти   
+intensity = 600 # Інтенсивність
+FWHM = 0.09 # Повна ширина но половині висоти   
 
 # Друга лінія спектру
 [[lines]]
 name = "Line 2"
-energy = 6.0
-intensity = 1000
-FWHM = 0.04
+energy = 2.5 # МеВ
+intensity = 400
+FWHM = 0.15 # МеВ
 
 # Третя лінія спектру
 [[lines]]
 name = "Line 3"
-energy = 8.0
-intensity = 5000
-FWHM = 0.1
+energy = 5.2
+intensity = 700
+FWHM = 0.14
 
 # Фон
 [background]
-E1 = 1000
-E2 = 4
-A = -100
-B = 800
+E1 = 195.0
+E2 = 0.01
+A = -0.003
+B = 40.0
 
 # Енергетичний діапазон 
 [range] # (від 0 до Emax)
-Emax = 10 # Максимальна енергія 
-Emin = 0 # Початковий зсув
-chan_number = 800 # Кількість каналів спектру
+Emax = 45.0 # Максимальна енергія 
+Emin = 0.0 # Початковий зсув
+chan_number = 2000 # Кількість каналів спектру
 "#;
 
 #[wasm_bindgen]
@@ -428,16 +428,16 @@ struct Line {
 #[derive(Serialize, Deserialize, Debug)]
 struct Background {
     #[serde(alias = "E1")]
-    e1: i32,
+    e1: f64,
 
     #[serde(alias = "E2")]
-    e2: i32,
+    e2: f64,
 
     #[serde(alias = "A")]
-    a: i32,
+    a: f64,
 
     #[serde(alias = "B")]
-    b: i32,
+    b: f64,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
