@@ -154,6 +154,17 @@ Emin = 0.0 # Початковий зсув
 chan_number = 2000 # Кількість каналів спектру
 "#;
 
+const DEFAULT2: &str = r#"
+# Пошукач піків
+[finder]
+smoothing = 4.0 # Сгладження
+pmax = 17.0 # Maксимальна
+pmin = 15.0 # Мінімальна
+h1 = 4.0
+h2 = 8.0
+h3 = 9.0
+"#;
+
 #[wasm_bindgen]
 impl State {
     pub fn new() -> State {
@@ -162,10 +173,16 @@ impl State {
         component
             .1
             .insert(component.0.clone(), TableWrapper::new(Table::new()));
-        let files = vec![(
-            String::from("Default.toml"),
-            File::new(String::from(DEFAULT.trim())),
-        )]
+        let files = vec![
+            (
+                String::from("Default.toml"),
+                File::new(String::from(DEFAULT.trim())),
+            ),
+            (
+                String::from("Task2.toml"),
+                File::new(String::from(DEFAULT2.trim())),
+            ),
+        ]
         .into_iter()
         .collect();
         Self {

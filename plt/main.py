@@ -28,36 +28,24 @@ def plot(index):
 
 
 def create_figure(config, index):
-    print(index)
     state = State(config)
     state.plot()
 
     fig = Figure(figsize=(6, 6), dpi=240)
     axis = fig.add_subplot(1, 1, 1)
+    axis.set_xlim([state.ranges['emin'] *
+                   state.ranges['chans'] /
+                   state.ranges['emax'], state.ranges['chans']])
     if index == 0:
-        axis.set_xlim([state.ranges['emin'] *
-                       state.ranges['chans'] /
-                       state.ranges['emax'], state.ranges['chans']])
         axis.plot(state.plot1[0], state.plot1[1], ',-')
     if index == 1:
-        axis.set_xlim([state.ranges['emin'] *
-                       state.ranges['chans'] /
-                       state.ranges['emax'], state.ranges['chans']])
         axis.plot(state.plot2[0], state.plot2[1], ',-')
     if index == 2:
-        axis.set_xlim([state.ranges['emin'] *
-                       state.ranges['chans'] /
-                       state.ranges['emax'], state.ranges['chans']])
         axis.scatter(state.plot3[0], state.plot3[1], s=2)
     if index == 3:
-        axis.set_xlim([state.ranges['emin'] *
-                       state.ranges['chans'] /
-                       state.ranges['emax'], state.ranges['chans']])
         axis.scatter(state.plot4[0], state.plot4[1], s=2)
     # fig.tight_layout()
-    axis.set(xlabel='Channels', ylabel='Intensity',
-             title='')
-    # axis.grid()
+    axis.set(xlabel='Channels', ylabel='Intensity', title='')
     return fig
 
 
