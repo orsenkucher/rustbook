@@ -4,6 +4,8 @@ import random
 import operator
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.optimize import curve_fit
+from scipy.stats import norm
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from flask_cors import CORS, cross_origin
@@ -20,7 +22,9 @@ def plot(index):
     index = int(index)
     config = request.json
     fig = Figure()
-    if config:
+    if 'finder' in config:
+        fig = find(config['finder'])
+    elif config:
         fig = create_figure(config, index)
     output = io.BytesIO()
     FigureCanvas(fig).print_png(output)
@@ -47,6 +51,88 @@ def create_figure(config, index):
     # fig.tight_layout()
     axis.set(xlabel='Channels', ylabel='Intensity', title='')
     return fig
+
+
+def find(config):
+    fig = Figure(figsize=(6, 6), dpi=240)
+    axis = fig.add_subplot(1, 1, 1)
+    print('peak finder')
+    finder = Finder()
+
+    plotX = []
+    plotY = []
+    count = 1
+
+    smooth = config['smoothing']
+    pmax = int(config['max'])
+    pmin = int(config['min'])
+    h1 = config['h1']
+    h2 = config['h2']
+    h3 = config['h3']
+
+    for x in range(len(finder.plotX) // smooth):
+        sum = 0
+        for y in range(smooth):
+            sum = sum + int(finder.plotY[smooth*x+y])
+        plotX.append(count)
+        plotY.append(sum // smooth)
+        count = count + 1
+
+    secder = []
+    par_ar = [i for i in range(pmin, pmax+1)]
+
+    for p in par_ar:
+        for x in range(p, len(plotX) - p):
+            secder.append(plotY[x + 1] - 2 * plotY[x] + plotY[x - 1])
+        peak_pos = []
+
+        for i in range(p, len(secder) - p):
+            if secder[i-p] > h1:
+                if secder[i] < -h2:
+                    if secder[i+p] > h3:
+                        peak_pos.append(int(i + p))
+
+        def gaussian(x, a, mean, sigma):
+            return a * np.exp(-((x - mean)**2 / (2 * sigma**2)))
+
+        for i in peak_pos[:2]:
+            try:
+                ys = []
+                xs = []
+                lin = []
+                if i+2*p < len(plotX):
+                    for j in range(i-2*p, i+2*p+1):
+                        ys.append(plotY[j])
+                        xs.append(plotX[j])
+                    lin = np.linspace(
+                        ys[0], ys[len(ys)-1], num=len(ys))
+                    fit_mat = []
+                    for j in range(len(ys)):
+                        fit_mat.append(ys[j]-lin[j])
+                    mu, std = norm.fit(fit_mat)
+                    graph, _ = curve_fit(
+                        gaussian, xs, fit_mat, p0=[1, mu, std])
+                    if graph[0]/p > 2 and graph[1] > 0:
+                        fit_show = []
+                        for j in range(len(ys)):
+                            fit_show.append(
+                                gaussian(xs[j], *graph)+lin[j])
+                        axis.plot(xs, fit_show, ',-')
+            except e:
+                print(e)
+
+    axis.scatter(plotX, plotY, s=2)
+
+    return fig
+
+
+class Finder():
+    def __init__(self):
+        self.plotY = []
+        with open('spectrum.dat') as fl:
+            for line in fl.readlines():
+                self.plotY.append(int(line.split(' ')[1]))
+        self.plotX = np.linspace(1, len(self.plotY), num=len(self.plotY))
 
 
 class State():

@@ -157,9 +157,9 @@ chan_number = 2000 # Кількість каналів спектру
 const DEFAULT2: &str = r#"
 # Пошукач піків
 [finder]
-smoothing = 4.0 # Сгладження
-pmax = 17.0 # Maксимальна
-pmin = 15.0 # Мінімальна
+smoothing = 4 # Сгладження: усереднення по кільком
+max = 17.0 # Maксимальна
+min = 15.0 # Мінімальна
 h1 = 4.0
 h2 = 8.0
 h3 = 9.0
@@ -264,6 +264,18 @@ impl State {
             self.log(err.to_string());
             err.to_string()
         })?;
+
+        if name == "Task2.toml" {
+            let finder = toml::from_str(&self.files[name].modified);
+            let finder: Task2 = finder.map_err(|err| {
+                self.log(err.to_string());
+                err.to_string()
+            })?;
+            return serde_json::to_string(&finder).map_err(|err| {
+                self.log(err.to_string());
+                JsValue::from(err.to_string())
+            });
+        }
 
         let config = self.parse(name).map_err(|err| {
             self.log(err.to_string());
@@ -498,6 +510,21 @@ struct Range {
     emin: f64,
 
     chan_number: i32,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct Task2 {
+    finder: Finder,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct Finder {
+    smoothing: i32,
+    max: f64,
+    min: f64,
+    h1: f64,
+    h2: f64,
+    h3: f64,
 }
 
 #[derive(Debug, Clone)]
