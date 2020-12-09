@@ -253,11 +253,43 @@ impl State {
             err.to_string()
         })?;
         info!("{:#?}", config);
-        serde_json::to_string(&config).map_err(|err| {
+        let parsed = serde_json::to_string(&config).map_err(|err| {
             self.log(err.to_string());
-            err.to_string().into()
-        })
+            JsValue::from(err.to_string())
+        })?;
+        self.validate(&config, parsed)
         // Chart::spectrum(canvas, config)
+    }
+
+    fn validate(&mut self, config: &Config, parsed: String) -> Result<String, JsValue> {
+        for line in &config.lines {
+            if line.energy < 0.0 {
+                let message = format!("Negative energy in line {}", line.name);
+                return self.error(&message);
+            }
+            if line.energy > config.range.emax {
+                let message = format!(
+                    "Over limit energy in line {}, max limit: {}",
+                    line.name, config.range.emax
+                );
+                return self.error(&message);
+            }
+            if line.intensity < 0 {
+                let message = format!("Negative intensity in line {}", line.name);
+                return self.error(&message);
+            }
+            if line.fwhm < 0.0 {
+                let message = format!("Negative FWHM in line {}", line.name);
+                return self.error(&message);
+            }
+        }
+        Ok(parsed)
+    }
+
+    fn error(&mut self, message: &str) -> Result<String, JsValue> {
+        self.log(String::from(message));
+        log::warn!("Editing error: {}", message);
+        return Err(message.into());
     }
 
     pub fn rerender(&mut self, canvas: HtmlCanvasElement) -> Result<String, JsValue> {

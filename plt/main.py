@@ -141,7 +141,7 @@ class State():
                 self.plot3[1][it] += line['I']
         else:
             passed = False
-            print("Error: broad value in config file is undefined")
+            print("Error: expand value in config file is undefined")
 
         self.plot4 = np.array(self.plot3)
         passed_inner = True
@@ -173,4 +173,4 @@ class State():
             None
         else:
             passed = False
-            print("Error: statVar value in config file is undefined")
+            print("Error: flag value in config file is undefined")
