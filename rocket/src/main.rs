@@ -1,20 +1,49 @@
+#![feature(proc_macro_hygiene, decl_macro)]
+
 #[macro_use]
 extern crate rocket;
 
-#[cfg(test)]
-mod tests;
+#[macro_use]
+extern crate diesel;
+extern crate dotenv;
 
-#[get("/hello/<name>/<age>")]
-fn hello(name: String, age: u8) -> String {
-    format!("Hello, {} year old named {}!", age, name)
+pub mod models;
+pub mod schema;
+
+use self::models::*;
+use diesel::pg::PgConnection;
+use diesel::prelude::*;
+use dotenv::dotenv;
+use std::env;
+
+#[get("/<name>")]
+fn hello(name: String) -> String {
+    format!("Hello, {}", name)
 }
 
-#[get("/hello/<name>")]
-fn hi(name: String) -> String {
-    name
+fn main() {
+    use crate::schema::posts::dsl::*;
+
+    let connection = establish_connection();
+    let results = posts
+        .filter(published.eq(true))
+        .limit(5)
+        .load::<Post>(&connection)
+        .expect("Error loadting posts");
+
+    println!("Displaying {} posts", results.len());
+    for post in results {
+        println!("{}", post.title);
+        println!("--------\n");
+        println!("{}", post.body);
+    }
+
+    rocket::ignite().mount("/", routes![hello]).launch();
 }
 
-#[launch]
-fn rocket() -> rocket::Rocket {
-    rocket::ignite().mount("/", routes![hello, hi])
+fn establish_connection() -> PgConnection {
+    dotenv().ok();
+
+    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+    PgConnection::establish(&database_url).expect(&format!("Error connecting to {}", database_url))
 }

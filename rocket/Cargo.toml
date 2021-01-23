@@ -1,10 +1,15 @@
 [package]
-name = "rocket"
+name = "rocketorsen"
 version = "0.1.0"
 authors = ["Arseniy Kucher <orsen.kucher@gmail.com>"]
 edition = "2018"
 
-
 [dependencies]
 rocket = "0.4.6"
-diesel = "1.4.5"
+diesel = { version = "1.4.4", features = ["postgres"] }
+dotenv = "0.15.0"
+
+[dependencies.rocket_contrib]
+version = "0.4"
+default-features = false
+features = ["json", "diesel_postgres_pool"]
