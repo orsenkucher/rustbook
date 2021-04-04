@@ -24,7 +24,7 @@ impl<T> Mutex<T> {
             .locked
             // because we are already in a loop
             // we weak can fail for whatever reason
-            .compare_exchange_weak(UNLOCKED, LOCKED, Ordering::Relaxed, Ordering::Relaxed)
+            .compare_exchange_weak(UNLOCKED, LOCKED, Ordering::Acquire, Ordering::Relaxed)
             .is_err()
         {
             // MESI protocol: stay in S when locked
@@ -32,13 +32,14 @@ impl<T> Mutex<T> {
         }
         // Safety: we hold the lock, therefor we can create a mutable reference.
         let ret = f(unsafe { &mut *self.v.get() });
-        self.locked.store(UNLOCKED, Ordering::Relaxed);
+        self.locked.store(UNLOCKED, Ordering::Release);
         ret
     }
 }
 
 use std::thread::spawn;
 
+// Checkout `loom`
 fn main() {
     let mutex: &'static _ = Box::leak(Box::new(Mutex::new(0)));
     let handles: Vec<_> = (0..100)
@@ -79,4 +80,42 @@ fn too_relaxed() {
     let _r2 = t2.join();
     // r1 == r2 == 22
     // wow
+}
+
+#[test]
+fn seq_cst() {
+    use std::sync::atomic::AtomicUsize;
+    let x: &'static _ = Box::leak(Box::new(AtomicBool::new(false)));
+    let y: &'static _ = Box::leak(Box::new(AtomicBool::new(false)));
+    let z: &'static _ = Box::leak(Box::new(AtomicUsize::new(0)));
+
+    spawn(move || x.store(true, Ordering::Release));
+    spawn(move || y.store(true, Ordering::Release));
+
+    let t1 = spawn(move || {
+        while !x.load(Ordering::Acquire) {}
+        if y.load(Ordering::Acquire) {
+            z.fetch_add(1, Ordering::Relaxed);
+        }
+    });
+
+    let t2 = spawn(move || {
+        while !y.load(Ordering::Acquire) {}
+        if x.load(Ordering::Acquire) {
+            z.fetch_add(1, Ordering::Relaxed);
+        }
+    });
+
+    t1.join().unwrap();
+    t2.join().unwrap();
+
+    let _z = z.load(Ordering::SeqCst);
+    // What are the possible values for z?
+    // 2 - Yes
+    // 1 - Yes
+    // But 0 - should not be an option, but actually is!
+    // So use SeqCst instead of Acquire and Release in a `while !` and `if`.
+    // Use loom to spin the threads of all possible states.
+    //
+    // The stream: https://youtu.be/rMGWeSjctlY
 }
