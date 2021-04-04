@@ -1,4 +1,4 @@
-use std::{ops::Deref, rc::Rc};
+use std::rc::Rc;
 
 pub struct List<T> {
     head: Link<T>,
@@ -57,6 +57,18 @@ impl<'a, T> Iterator for Iter<'a, T> {
             self.next = node.next.as_deref();
             &node.elem
         })
+    }
+}
+
+impl<T> Drop for List<T> {
+    fn drop(&mut self) {
+        let mut head = self.head.take();
+        while let Some(node) = head {
+            match Rc::try_unwrap(node) {
+                Ok(mut node) => head = node.next.take(),
+                _ => break,
+            }
+        }
     }
 }
 
