@@ -25,6 +25,26 @@ impl<T> List<T> {
         }
     }
 
+    // Same as append
+    pub fn prepend(&self, elem: T) -> List<T> {
+        List {
+            head: Some(Rc::new(Node {
+                elem,
+                next: self.head.clone(),
+            })),
+        }
+    }
+
+    pub fn tail2(&self) -> List<T> {
+        List {
+            head: self.head.as_ref().and_then(|node| node.next.clone()),
+        }
+    }
+
+    pub fn head2(&self) -> Option<&T> {
+        self.head.as_ref().map(|node| &node.elem)
+    }
+
     pub fn tail(&self) -> Self {
         List {
             head: self.head.as_ref().and_then(|node| node.next.clone()),
@@ -69,6 +89,29 @@ impl<T> Drop for List<T> {
                 _ => break,
             }
         }
+    }
+}
+
+pub struct Iter2<'a, T> {
+    next: Option<&'a Node<T>>,
+}
+
+impl<T> List<T> {
+    pub fn iter2(&self) -> Iter2<T> {
+        Iter2 {
+            next: self.head.as_deref(),
+        }
+    }
+}
+
+impl<'a, T> Iterator for Iter2<'a, T> {
+    type Item = &'a T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.next.map(|node| {
+            self.next = node.next.as_deref();
+            &node.elem
+        })
     }
 }
 
