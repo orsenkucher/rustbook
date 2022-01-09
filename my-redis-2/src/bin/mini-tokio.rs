@@ -85,6 +85,26 @@ impl Future for Delay {
     }
 }
 
+async fn delay(dur: Duration) {
+    use tokio::sync::Notify;
+
+    let when = Instant::now() + dur;
+    let notify = Arc::new(Notify::new());
+    let notify2 = Arc::new(Notify::new());
+
+    thread::spawn(move || {
+        let now = Instant::now();
+
+        if now < when {
+            thread::sleep(when - now);
+        }
+
+        notify2.notify_one();
+    });
+
+    notify.notified().await;
+}
+
 fn main() {
     let mut mini_tokio = MiniTokio::new();
 
