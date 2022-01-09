@@ -54,7 +54,9 @@ fn main() {
 }
 
 struct MiniTokio {
-    scheduler: channel::Receiver<Arc<Task>>,
+    // To receive tasks to schedule
+    scheduled: channel::Receiver<Arc<Task>>,
+    // To send tasks. For `spawn` fn
     sender: channel::Sender<Arc<Task>>,
 }
 
@@ -67,16 +69,20 @@ struct Task {
     // more lines of code than can fit in a single tutorial
     // page.
     future: Mutex<Pin<Box<dyn Future<Output = ()> + Send>>>,
+    // Channel to send tasks for execution.
     executor: channel::Sender<Arc<Task>>,
 }
 
 impl Task {
+    // Send task to executor
     fn schedule(self: &Arc<Self>) {
+        // Arc is cloned
         let _ = self.executor.send(self.clone());
     }
 }
 
 impl ArcWake for Task {
+    // Waking is done by scheduling the task on executor.
     fn wake_by_ref(arc_self: &Arc<Self>) {
         arc_self.schedule()
     }
@@ -85,8 +91,8 @@ impl ArcWake for Task {
 impl MiniTokio {
     /// Initialize a new mini-tokio instance.
     fn new() -> MiniTokio {
-        let (sender, scheduler) = channel::unbounded();
-        MiniTokio { scheduler, sender }
+        let (sender, scheduled) = channel::unbounded();
+        MiniTokio { scheduled, sender }
     }
 
     /// Spawn a future onto the mini-tokio instance.
@@ -97,11 +103,14 @@ impl MiniTokio {
     where
         F: Future<Output = ()> + Send + 'static,
     {
+        // Passing future and sender half to Task's `spawn`
         Task::spawn(future, &self.sender);
     }
 
     fn run(&mut self) {
-        while let Ok(task) = self.scheduler.recv() {
+        // Will loop until the receiver is closed
+        // and nothing left to process.
+        while let Ok(task) = self.scheduled.recv() {
             task.poll();
         }
         // let waker = task::noop_waker();
@@ -116,16 +125,20 @@ impl MiniTokio {
 }
 
 impl Task {
+    // Poll task for progress
     fn poll(self: Arc<Self>) {
         // Create a waker from the `Task` instance. This
         // uses the `ArcWake` impl from above.
+        // waker: W where W: ArcWake
+        // Arc::clone
         let waker = task::waker(self.clone());
+        // Create context with our waker
         let mut cx = Context::from_waker(&waker);
 
         // No other thread ever tries to lock the future
         let mut future = self.future.try_lock().unwrap();
 
-        // Poll the future
+        // Poll the future passing our `Context` to it.
         let _ = future.as_mut().poll(&mut cx);
     }
 
@@ -143,6 +156,7 @@ impl Task {
             executor: sender.clone(),
         });
 
+        // Send task onto scheduled queue.
         let _ = sender.send(task);
     }
 }
