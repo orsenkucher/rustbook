@@ -131,7 +131,7 @@ impl Connection {
     }
 }
 
-mod fut {
+pub mod fut {
     use std::future::Future;
     use std::pin::Pin;
     use std::sync::{Arc, Mutex};
